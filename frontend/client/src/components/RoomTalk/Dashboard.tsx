@@ -106,18 +106,7 @@ export default function Dashboard({ username }: Props) {
 
           {/* Right: actions */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Bell */}
-            <button
-              aria-label="Notifications"
-              className="relative w-9 h-9 rounded-xl flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
-            >
-              <Bell size={17} />
-              {/* Notification dot */}
-              <span
-                className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full"
-                style={{ background: '#EF4444', boxShadow: '0 0 5px rgba(239,68,68,0.7)' }}
-              />
-            </button>
+
 
             {/* User pill */}
             <button
