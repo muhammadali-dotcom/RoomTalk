@@ -1,30 +1,57 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { X, User, Shield, Smile } from 'lucide-react';
+import { socket } from '@/lib/socket';
+import { useUserStore } from '@/store/useUserStore';
 
 interface Props {
-  onContinue: (username: string) => void;
   onClose?: () => void;
 }
 
-export default function UsernameModal({ onContinue, onClose }: Props) {
+export default function UsernameModal({ onClose }: Props) {
   const [username, setUsername] = useState('');
   const [error, setError]       = useState('');
   const [loading, setLoading]   = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!username.trim()) {
+  const setStoreUsername = useUserStore((s) => s.setUsername);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+    function onAccepted({ username }: { username: string }) {
+      setLoading(false);
+      setStoreUsername(username);
+      router.push('/dashboard');
+    }
+
+    function onError({ message }: { message: string }) {
+      setLoading(false);
+      setError(message);
+    }
+
+    socket.on('user:accepted', onAccepted);
+    socket.on('user:error', onError);
+
+    return () => {
+      socket.off('user:accepted', onAccepted);
+      socket.off('user:error', onError);
+    };
+  }, [setStoreUsername, router]);
+
+  function submit() {
+    const trimmed = username.trim();
+    if (!trimmed) {
       setError('Username is required');
       return;
     }
     setError('');
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      onContinue(username.trim());
-    }, 480);
+    socket.emit('user:join', { username: trimmed });
   }
 
   return (
@@ -68,8 +95,7 @@ export default function UsernameModal({ onContinue, onClose }: Props) {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-3.5">
-        {/* Input */}
+      <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="space-y-3.5">
         <div className="relative">
           <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
             <User size={15} className="text-gray-500" />
@@ -81,17 +107,17 @@ export default function UsernameModal({ onContinue, onClose }: Props) {
             autoFocus
             className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white placeholder-gray-500 outline-none transition-all"
             style={{
-              background:   'rgba(255,255,255,0.04)',
-              border:       error
+              background: 'rgba(255,255,255,0.04)',
+              border: error
                 ? '1px solid rgba(239,68,68,0.45)'
                 : '1px solid rgba(148,163,184,0.12)',
-              boxShadow:    error ? '0 0 0 3px rgba(239,68,68,0.08)' : undefined,
+              boxShadow: error ? '0 0 0 3px rgba(239,68,68,0.08)' : undefined,
             }}
             onFocus={(e) => {
               if (!error) {
-                e.currentTarget.style.border      = '1px solid rgba(52,211,153,0.4)';
-                e.currentTarget.style.background  = 'rgba(52,211,153,0.03)';
-                e.currentTarget.style.boxShadow   = '0 0 0 3px rgba(52,211,153,0.07)';
+                e.currentTarget.style.border     = '1px solid rgba(52,211,153,0.4)';
+                e.currentTarget.style.background = 'rgba(52,211,153,0.03)';
+                e.currentTarget.style.boxShadow  = '0 0 0 3px rgba(52,211,153,0.07)';
               }
             }}
             onBlur={(e) => {
@@ -104,7 +130,6 @@ export default function UsernameModal({ onContinue, onClose }: Props) {
           />
         </div>
 
-        {/* Error */}
         {error && (
           <p className="flex items-center gap-1.5 text-xs text-red-400">
             <span className="w-1 h-1 rounded-full bg-red-400 flex-shrink-0" />
@@ -112,14 +137,13 @@ export default function UsernameModal({ onContinue, onClose }: Props) {
           </p>
         )}
 
-        {/* Submit button */}
         <button
           type="submit"
           disabled={loading}
           className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
           style={{
-            background:  'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-            boxShadow:   '0 4px 20px rgba(16,185,129,0.4)',
+            background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+            boxShadow:  '0 4px 20px rgba(16,185,129,0.4)',
           }}
           onMouseEnter={(e) => {
             if (!loading) e.currentTarget.style.boxShadow = '0 6px 24px rgba(16,185,129,0.5)';
@@ -139,7 +163,6 @@ export default function UsernameModal({ onContinue, onClose }: Props) {
         </button>
       </form>
 
-      {/* Footer */}
       <div className="mt-5 flex items-start gap-2 text-[12px] text-gray-500 leading-relaxed">
         <Shield size={12} className="text-gray-600 flex-shrink-0 mt-0.5" />
         <span>Your chats are temporary and automatically deleted after 12 hours.</span>

@@ -3,9 +3,9 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUserStore } from '@/store/useUserStore';
-import ChatScreen from '@/components/chat/ChatScreen';
+import Dashboard from '@/components/RoomTalk/Dashboard';
 
-export default function ChatRoomPage({ params }: { params: { room: string } }) {
+export default function DashboardPage() {
   const username = useUserStore((s) => s.username);
   const router = useRouter();
 
@@ -15,5 +15,5 @@ export default function ChatRoomPage({ params }: { params: { room: string } }) {
 
   if (!username) return null;
 
-  return <ChatScreen roomId={params.room} username={username} />;
+  return <Dashboard username={username} />;
 }

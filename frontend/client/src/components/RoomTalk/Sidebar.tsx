@@ -6,7 +6,7 @@ import Logo from './Logo';
 
 const NAV_ITEMS = [
   { key: 'rooms',    label: 'Rooms',           icon: Hash,          badge: null },
-  { key: 'dms',      label: 'Direct Messages', icon: MessageSquare, badge: '2' },
+  { key: 'dms',      label: 'Direct Messages', icon: MessageSquare, badge: null },
 ];
 
 interface Props {

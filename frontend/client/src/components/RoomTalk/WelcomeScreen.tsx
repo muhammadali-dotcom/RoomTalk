@@ -5,9 +5,7 @@ import { Users, MessageSquare, Shield, MessageCircle, Check, Hash, LogIn, Clock 
 import Logo from "./Logo";
 import UsernameModal from "./UsernameModal";
 
-interface Props {
-  onEnter: (username: string) => void;
-}
+
 
 const FEATURES = [
   {
@@ -37,7 +35,7 @@ const FEATURES = [
 ];
 
 
-export default function WelcomeScreen({ onEnter }: Props) {
+export default function WelcomeScreen() {
   const [showModal, setShowModal] = useState(false);
 
   return (
@@ -324,7 +322,6 @@ export default function WelcomeScreen({ onEnter }: Props) {
           }}
         >
           <UsernameModal
-            onContinue={onEnter}
             onClose={() => setShowModal(false)}
           />
         </div>
