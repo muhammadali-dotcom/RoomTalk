@@ -38,3 +38,8 @@ export async function removeActiveUser(
   await client.del(activeUserKey(username));
   await client.del(socketUserKey(socketId));
 }
+
+export async function getSocketIdByUsername(username: string): Promise<string | null> {
+  const client = getRedisClient();
+  return client.get(activeUserKey(username));
+}

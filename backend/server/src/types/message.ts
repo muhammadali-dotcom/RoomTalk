@@ -6,3 +6,12 @@ export interface PublicMessage {
   type:      'public';
   createdAt: string;
 }
+
+export interface PrivateMessage {
+  id:        string;
+  from:      string;
+  to:        string;
+  text:      string;
+  type:      'private';
+  createdAt: string;
+}

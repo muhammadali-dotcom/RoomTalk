@@ -5,6 +5,7 @@ import { CLIENT_URL, PORT } from './config/env';
 import { registerUserHandler } from './socket/handlers/user.handler';
 import { registerRoomHandler } from './socket/handlers/room.handler';
 import { registerMessageHandler } from './socket/handlers/message.handler';
+import { registerPrivateMessageHandler } from './socket/handlers/private-message.handler';
 import { connectRedis } from './redis/redis.client';
 import { getUsernameBySocketId, removeActiveUser } from './services/user.service';
 import {
@@ -30,6 +31,7 @@ io.on('connection', (socket) => {
   registerUserHandler(socket, io);
   registerRoomHandler(socket, io);
   registerMessageHandler(socket, io);
+  registerPrivateMessageHandler(socket, io);
 
   socket.on('disconnect', () => {
     (async () => {
