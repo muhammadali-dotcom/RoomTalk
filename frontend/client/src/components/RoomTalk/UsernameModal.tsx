@@ -29,17 +29,31 @@ export default function UsernameModal({ onClose }: Props) {
       router.push('/dashboard');
     }
 
-    function onError({ message }: { message: string }) {
+    function onUserError({ message }: { message: string }) {
       setLoading(false);
       setError(message);
     }
 
+    function onConnectError() {
+      setLoading(false);
+      setError('Cannot reach the server. Make sure the backend is running and refresh.');
+    }
+
+    function onDisconnect() {
+      setLoading(false);
+      setError('Connection lost. Please refresh and try again.');
+    }
+
     socket.on('user:accepted', onAccepted);
-    socket.on('user:error', onError);
+    socket.on('user:error', onUserError);
+    socket.on('connect_error', onConnectError);
+    socket.on('disconnect', onDisconnect);
 
     return () => {
       socket.off('user:accepted', onAccepted);
-      socket.off('user:error', onError);
+      socket.off('user:error', onUserError);
+      socket.off('connect_error', onConnectError);
+      socket.off('disconnect', onDisconnect);
     };
   }, [setStoreUsername, router]);
 
@@ -47,6 +61,10 @@ export default function UsernameModal({ onClose }: Props) {
     const trimmed = username.trim();
     if (!trimmed) {
       setError('Username is required');
+      return;
+    }
+    if (!socket.connected) {
+      setError('Not connected to server. Please wait a moment and try again.');
       return;
     }
     setError('');

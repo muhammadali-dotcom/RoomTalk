@@ -1,72 +1,50 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  ChevronDown, Plus, Clock,
-  Code2, TrendingUp, Users, MessageCircle, Gamepad2,
-} from 'lucide-react';
+import { Clock, LogOut, Code2, TrendingUp, Users } from 'lucide-react';
+import type { ReactNode } from 'react';
 import Logo from './Logo';
 import Sidebar from './Sidebar';
 import RoomCard, { type RoomDef } from './RoomCard';
 import { socket } from '@/lib/socket';
+import { useUserStore } from '@/store/useUserStore';
 
-const ROOMS: RoomDef[] = [
-  {
-    id:           'developers',
-    name:         'Developers',
-    description:  'Talk about code, frameworks, bugs, architecture, and more.',
-    active:       4,
-    icon:         <Code2 size={28} />,
-    iconBg:       'rgba(34,211,238,0.1)',
-    iconBorder:   'rgba(34,211,238,0.22)',
-    iconColor:    '#22D3EE',
-    avatarColors: ['#22D3EE', '#10B981', '#60A5FA', '#A78BFA'],
+interface RoomFromServer {
+  id: string;
+  name: string;
+  description: string;
+  activeUsers: number;
+}
+
+interface RoomVisual {
+  icon:        ReactNode;
+  iconBg:      string;
+  iconBorder:  string;
+  iconColor:   string;
+}
+
+// Static visual config per room ID — counts come from the server
+const ROOM_VISUAL: Record<string, RoomVisual> = {
+  developers: {
+    icon:       <Code2 size={28} />,
+    iconBg:     'rgba(34,211,238,0.1)',
+    iconBorder: 'rgba(34,211,238,0.22)',
+    iconColor:  '#22D3EE',
   },
-  {
-    id:           'marketing',
-    name:         'Marketing',
-    description:  'Discuss campaigns, strategies, growth and marketing trends.',
-    active:       2,
-    icon:         <TrendingUp size={28} />,
-    iconBg:       'rgba(96,165,250,0.1)',
-    iconBorder:   'rgba(96,165,250,0.22)',
-    iconColor:    '#60A5FA',
-    avatarColors: ['#60A5FA', '#34D399'],
+  marketing: {
+    icon:       <TrendingUp size={28} />,
+    iconBg:     'rgba(96,165,250,0.1)',
+    iconBorder: 'rgba(96,165,250,0.22)',
+    iconColor:  '#60A5FA',
   },
-  {
-    id:           'hr',
-    name:         'HR',
-    description:  'Talk about policies, culture, recruitment and more.',
-    active:       0,
-    icon:         <Users size={28} />,
-    iconBg:       'rgba(251,191,36,0.1)',
-    iconBorder:   'rgba(251,191,36,0.22)',
-    iconColor:    '#FBBF24',
-    avatarColors: [],
+  hr: {
+    icon:       <Users size={28} />,
+    iconBg:     'rgba(251,191,36,0.1)',
+    iconBorder: 'rgba(251,191,36,0.22)',
+    iconColor:  '#FBBF24',
   },
-  {
-    id:           'general',
-    name:         'General',
-    description:  'General talks about anything and everything.',
-    active:       6,
-    icon:         <MessageCircle size={28} />,
-    iconBg:       'rgba(20,184,166,0.1)',
-    iconBorder:   'rgba(20,184,166,0.22)',
-    iconColor:    '#14B8A6',
-    avatarColors: ['#14B8A6', '#22D3EE', '#60A5FA', '#34D399'],
-  },
-  {
-    id:           'gaming',
-    name:         'Gaming',
-    description:  'Discuss games, updates, streaming and more.',
-    active:       3,
-    icon:         <Gamepad2 size={28} />,
-    iconBg:       'rgba(167,139,250,0.1)',
-    iconBorder:   'rgba(167,139,250,0.22)',
-    iconColor:    '#A78BFA',
-    avatarColors: ['#A78BFA', '#F472B6', '#60A5FA'],
-  },
-];
+};
 
 interface Props {
   username: string;
@@ -74,15 +52,87 @@ interface Props {
 
 export default function Dashboard({ username }: Props) {
   const router = useRouter();
+  const clearUsername = useUserStore((s) => s.clearUsername);
+
+  const [rooms, setRooms] = useState<RoomFromServer[]>([]);
+  const [joiningRoomId, setJoiningRoomId] = useState<string | null>(null);
+  const [roomError, setRoomError] = useState<string>('');
 
   const avatarInitial = username[0]?.toUpperCase() ?? 'U';
 
-  function joinRoom(roomId: string) {
-    if (socket.connected) {
-      socket.emit('room:join', { roomId });
+  useEffect(() => {
+    // If socket is disconnected (e.g. page refresh), go back to home to reconnect
+    if (!socket.connected) {
+      router.replace('/');
+      return;
     }
-    router.push(`/chat/${roomId}`);
+
+    function onLoggedOut() {
+      clearUsername();
+      router.replace('/');
+    }
+
+    function onRoomsList(data: RoomFromServer[]) {
+      setRooms(data);
+    }
+
+    function onRoomsUpdate(data: RoomFromServer[]) {
+      setRooms(data);
+    }
+
+    function onRoomJoined({ roomId }: { roomId: string }) {
+      setJoiningRoomId(null);
+      router.push(`/chat/${roomId}`);
+    }
+
+    function onRoomError({ message }: { message: string }) {
+      setJoiningRoomId(null);
+      setRoomError(message);
+    }
+
+    socket.on('user:logged-out', onLoggedOut);
+    socket.on('rooms:list', onRoomsList);
+    socket.on('rooms:update', onRoomsUpdate);
+    socket.on('room:joined', onRoomJoined);
+    socket.on('room:error', onRoomError);
+
+    // Request the initial room list with counts
+    socket.emit('rooms:get');
+
+    return () => {
+      socket.off('user:logged-out', onLoggedOut);
+      socket.off('rooms:list', onRoomsList);
+      socket.off('rooms:update', onRoomsUpdate);
+      socket.off('room:joined', onRoomJoined);
+      socket.off('room:error', onRoomError);
+    };
+  }, [clearUsername, router]);
+
+  function logout() {
+    socket.emit('user:logout');
   }
+
+  function joinRoom(roomId: string) {
+    setRoomError('');
+    setJoiningRoomId(roomId);
+    socket.emit('room:join', { roomId });
+  }
+
+  // Merge server data with frontend visual config
+  const roomDefs: RoomDef[] = rooms.map((r) => {
+    const visual = ROOM_VISUAL[r.id];
+    return {
+      id:          r.id,
+      name:        r.name,
+      description: r.description,
+      active:      r.activeUsers,
+      icon:        visual?.icon        ?? <Users size={28} />,
+      iconBg:      visual?.iconBg      ?? 'rgba(148,163,184,0.1)',
+      iconBorder:  visual?.iconBorder  ?? 'rgba(148,163,184,0.22)',
+      iconColor:   visual?.iconColor   ?? '#94A3B8',
+      avatarColors: [],
+    };
+  });
 
   return (
     <div
@@ -113,6 +163,16 @@ export default function Dashboard({ username }: Props) {
 
           <div className="flex items-center gap-2 sm:gap-3">
             <button
+              onClick={logout}
+              title="Logout"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[13px] text-gray-400 hover:text-red-400 transition-colors"
+              style={{ border: '1px solid rgba(148,163,184,0.08)' }}
+            >
+              <LogOut size={14} />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
+
+            <button
               className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl transition-colors hover:bg-white/5"
               style={{ border: '1px solid rgba(148,163,184,0.1)' }}
             >
@@ -129,7 +189,6 @@ export default function Dashboard({ username }: Props) {
                 />
               </div>
               <span className="hidden sm:block text-[13.5px] font-medium text-white">{username}</span>
-              <ChevronDown size={14} className="hidden sm:block text-gray-500" />
             </button>
           </div>
         </header>
@@ -150,20 +209,33 @@ export default function Dashboard({ username }: Props) {
                   <h1 className="text-[22px] font-bold text-white tracking-tight">Available Rooms</h1>
                   <p className="text-[13px] text-gray-400 mt-1">Join a room to start chatting with others</p>
                 </div>
-                <button className="rt-btn-outline flex items-center gap-2 self-start sm:self-auto">
-                  <Plus size={14} />
-                  Create Room
-                </button>
               </div>
 
+              {roomError && (
+                <div
+                  className="mb-4 px-4 py-3 rounded-xl text-[13px] text-red-400"
+                  style={{
+                    background: 'rgba(239,68,68,0.08)',
+                    border:     '1px solid rgba(239,68,68,0.2)',
+                  }}
+                >
+                  {roomError}
+                </div>
+              )}
+
               <div className="space-y-3">
-                {ROOMS.map((room) => (
-                  <RoomCard
-                    key={room.id}
-                    room={room}
-                    onJoin={() => joinRoom(room.id)}
-                  />
-                ))}
+                {roomDefs.length === 0 ? (
+                  <div className="text-[13px] text-gray-500 py-4">Loading rooms…</div>
+                ) : (
+                  roomDefs.map((room) => (
+                    <RoomCard
+                      key={room.id}
+                      room={room}
+                      joining={joiningRoomId === room.id}
+                      onJoin={() => joinRoom(room.id)}
+                    />
+                  ))
+                )}
               </div>
 
               <div

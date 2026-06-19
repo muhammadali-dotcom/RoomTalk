@@ -2,25 +2,24 @@ import { ArrowRight } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 export interface RoomDef {
-  id:          string;
-  name:        string;
-  description: string;
-  active:      number;
-  icon:        ReactNode;
-  iconBg:      string;
-  iconBorder:  string;
-  iconColor:   string;
+  id:           string;
+  name:         string;
+  description:  string;
+  active:       number;
+  icon:         ReactNode;
+  iconBg:       string;
+  iconBorder:   string;
+  iconColor:    string;
   avatarColors: string[];
 }
 
 interface Props {
-  room:   RoomDef;
-  onJoin: () => void;
+  room:     RoomDef;
+  joining?: boolean;
+  onJoin:   () => void;
 }
 
-export default function RoomCard({ room, onJoin }: Props) {
-  const initials = ['A', 'R', 'Y', 'S', 'M'];
-
+export default function RoomCard({ room, joining = false, onJoin }: Props) {
   return (
     <div className="rt-room-card flex flex-col sm:flex-row sm:items-center gap-4">
       {/* Icon box */}
@@ -59,27 +58,12 @@ export default function RoomCard({ room, onJoin }: Props) {
           {room.description}
         </p>
 
-        {/* Avatar stack */}
         <div className="mt-2.5 flex items-center gap-2">
-          <div className="flex items-center">
-            {room.avatarColors.slice(0, 4).map((color, i) => (
-              <div
-                key={i}
-                className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold text-white"
-                style={{
-                  background:  color + '30',
-                  border:      `2px solid rgba(10,14,22,0.95)`,
-                  marginLeft:  i === 0 ? 0 : '-6px',
-                  zIndex:      10 - i,
-                  boxShadow:   `0 0 0 1px ${color}50`,
-                  position:    'relative',
-                }}
-              >
-                {initials[i]}
-              </div>
-            ))}
-          </div>
-          <span className="text-[11.5px] text-gray-500">{room.active} members chatting</span>
+          <span className="text-[11.5px] text-gray-500">
+            {room.active === 0
+              ? 'No one here yet — be the first!'
+              : `${room.active} ${room.active === 1 ? 'member' : 'members'} chatting`}
+          </span>
         </div>
       </div>
 
@@ -87,10 +71,20 @@ export default function RoomCard({ room, onJoin }: Props) {
       <div className="flex-shrink-0">
         <button
           onClick={onJoin}
-          className="rt-btn-outline flex items-center gap-2 group"
+          disabled={joining}
+          className="rt-btn-outline flex items-center gap-2 group disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          Join Room
-          <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+          {joining ? (
+            <>
+              <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              Joining…
+            </>
+          ) : (
+            <>
+              Join Room
+              <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+            </>
+          )}
         </button>
       </div>
     </div>
