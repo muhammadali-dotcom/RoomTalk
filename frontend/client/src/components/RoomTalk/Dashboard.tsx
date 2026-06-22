@@ -357,9 +357,9 @@ export default function Dashboard({ username }: Props) {
                   style={{ background: 'var(--rt-border)' }}
                 />
 
-                <Lock size={14} className="text-violet-400 flex-shrink-0" />
+                <Lock size={14} className="text-emerald-400 flex-shrink-0" />
                 <span className="text-[15px] font-semibold text-slate-900 dark:text-white truncate">{activeDM}</span>
-                <span className="text-[12px] text-violet-500/70 hidden sm:block flex-shrink-0">
+                <span className="text-[12px] text-emerald-500/70 hidden sm:block flex-shrink-0">
                   Private · messages expire after 12h
                 </span>
               </div>
@@ -394,13 +394,13 @@ export default function Dashboard({ username }: Props) {
                             <span className="text-[10.5px] text-slate-400 dark:text-gray-600">
                               {formatMessageTime(msg.createdAt)}
                             </span>
-                            <span className="text-[11.5px] font-semibold text-violet-400">You</span>
+                            <span className="text-[11.5px] font-semibold text-emerald-400">You</span>
                           </div>
                           <div
                             className="px-3.5 py-2 rounded-2xl text-[13.5px] text-white leading-relaxed break-words"
                             style={{
-                              background: 'rgba(139,92,246,0.15)',
-                              border:     '1px solid rgba(139,92,246,0.25)',
+                              background: 'var(--rt-bubble-self-bg)',
+                              border:     '1px solid var(--rt-bubble-self-border)',
                             }}
                           >
                             {msg.text}
@@ -465,8 +465,8 @@ export default function Dashboard({ username }: Props) {
                   <div
                     className="flex-1 flex items-center px-4 rounded-xl"
                     style={{
-                      background: 'rgba(139,92,246,0.06)',
-                      border:     '1px solid rgba(139,92,246,0.2)',
+                      background: 'var(--rt-bg-input)',
+                      border:     '1px solid var(--rt-border)',
                       height:     '44px',
                     }}
                   >
@@ -494,8 +494,8 @@ export default function Dashboard({ username }: Props) {
                     disabled={!dmInput.trim()}
                     className="flex items-center justify-center w-11 h-11 rounded-xl flex-shrink-0 transition-opacity disabled:opacity-40"
                     style={{
-                      background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)',
-                      boxShadow:  '0 4px 16px rgba(139,92,246,0.3)',
+                      background: 'linear-gradient(135deg, #10B981, #059669)',
+                      boxShadow:  '0 4px 16px rgba(16,185,129,0.3)',
                     }}
                   >
                     <Send size={16} className="text-white" />

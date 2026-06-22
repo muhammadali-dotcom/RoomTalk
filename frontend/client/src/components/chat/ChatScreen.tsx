@@ -572,8 +572,8 @@ function MessageBubble({
           <div
             className="px-3.5 py-2 rounded-2xl text-[13.5px] text-white leading-relaxed break-words"
             style={{
-              background: 'rgba(16,185,129,0.15)',
-              border:     '1px solid rgba(16,185,129,0.25)',
+              background: 'var(--rt-bubble-self-bg)',
+              border:     '1px solid var(--rt-bubble-self-border)',
             }}
           >
             {msg.text}

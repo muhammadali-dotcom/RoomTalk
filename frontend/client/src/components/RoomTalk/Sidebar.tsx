@@ -75,7 +75,7 @@ export default function Sidebar({
                     onClick={() => onDmClick?.(dm.username)}
                     className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left transition-all ${
                       isActive
-                        ? 'bg-violet-500/10 border border-violet-500/20'
+                        ? 'bg-emerald-500/10 border border-emerald-500/20'
                         : 'hover:bg-slate-100 dark:hover:bg-white/5'
                     }`}
                   >
@@ -87,7 +87,7 @@ export default function Sidebar({
                     <span
                       className={`text-[13px] font-medium truncate ${
                         isActive
-                          ? 'text-violet-500 dark:text-violet-300'
+                          ? 'text-emerald-600 dark:text-emerald-400'
                           : hasUnread
                           ? 'text-slate-900 dark:text-white'
                           : 'text-slate-500 dark:text-gray-400'
@@ -104,7 +104,7 @@ export default function Sidebar({
                       </span>
                     )}
                     {isActive && (
-                      <Lock size={10} className="text-violet-400 ml-auto flex-shrink-0" />
+                      <Lock size={10} className="text-emerald-500 dark:text-emerald-400 ml-auto flex-shrink-0" />
                     )}
                   </button>
                 );

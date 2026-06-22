@@ -21,6 +21,8 @@
   --rt-text-muted:          #94a3b8;
   --rt-bubble-other-bg:     #ffffff;
   --rt-bubble-other-border: rgba(148,163,184,0.3);
+  --rt-bubble-self-bg:      linear-gradient(135deg, #10B981, #059669);
+  --rt-bubble-self-border:  rgba(16,185,129,0.3);
   --rt-shadow-page:         0 20px 60px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
   --rt-shadow-card:         0 4px 20px rgba(0,0,0,0.05);
 
@@ -58,6 +60,8 @@
   --rt-text-muted:          #6B7280;
   --rt-bubble-other-bg:     rgba(255,255,255,0.05);
   --rt-bubble-other-border: rgba(148,163,184,0.1);
+  --rt-bubble-self-bg:      rgba(16,185,129,0.15);
+  --rt-bubble-self-border:  rgba(16,185,129,0.25);
   --rt-shadow-page:         0 40px 100px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.04);
   --rt-shadow-card:         0 30px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
 
