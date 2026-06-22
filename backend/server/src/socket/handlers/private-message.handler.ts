@@ -6,10 +6,16 @@ import {
   savePrivateMessage,
   getPrivateMessages,
 } from '../../services/private-message.service';
+import { incrementUnread, resetUnread } from '../../services/unread.service';
+import {
+  addDirectMessageUser,
+  getDirectMessageUsers,
+  getDirectMessagesWithUnread,
+} from '../../services/dm.service';
 
 export function registerPrivateMessageHandler(socket: Socket, io: Server): void {
 
-  // Client opens a private chat panel — load message history
+  // Client opens a private chat panel from within a room — requires same room
   socket.on('private:open', async (payload: { withUser: string }) => {
     const username    = socket.data.username as string | undefined;
     const currentRoom = socket.data.currentRoom as string | undefined;
@@ -45,6 +51,10 @@ export function registerPrivateMessageHandler(socket: Socket, io: Server): void 
         return;
       }
 
+      // Reset unread count when the user opens the chat
+      await resetUnread(username, withUser);
+      socket.emit('unread:update', { from: withUser, count: 0 });
+
       const messages = await getPrivateMessages(username, withUser);
       socket.emit('private:history', { withUser, messages });
     } catch (err) {
@@ -53,7 +63,7 @@ export function registerPrivateMessageHandler(socket: Socket, io: Server): void 
     }
   });
 
-  // Client sends a private message to another user in the same room
+  // Client sends a private message — works from inside a room OR from Dashboard DM
   socket.on('private:send', async (payload: { to: string; text: string }) => {
     const sender      = socket.data.username as string | undefined;
     const currentRoom = socket.data.currentRoom as string | undefined;
@@ -62,10 +72,6 @@ export function registerPrivateMessageHandler(socket: Socket, io: Server): void 
 
     if (!sender) {
       socket.emit('private:error', { message: 'Not authenticated.' });
-      return;
-    }
-    if (!currentRoom) {
-      socket.emit('private:error', { message: 'You are not in a room.' });
       return;
     }
     if (!receiver || typeof receiver !== 'string') {
@@ -78,15 +84,31 @@ export function registerPrivateMessageHandler(socket: Socket, io: Server): void 
     }
 
     try {
-      const isActive = await isUsernameActive(receiver);
-      if (!isActive) {
-        socket.emit('private:error', { message: `${receiver} is not online.` });
-        return;
+      // Determine if sending is allowed:
+      //   Option A — both users are currently in the same room (new or existing chat)
+      //   Option B — an existing DM conversation exists between them (dashboard continue)
+      let sendingAllowed = false;
+
+      if (currentRoom) {
+        const isActive = await isUsernameActive(receiver);
+        if (isActive) {
+          const receiverRoom = await getUserCurrentRoom(receiver);
+          sendingAllowed = receiverRoom === currentRoom;
+        }
       }
 
-      const receiverRoom = await getUserCurrentRoom(receiver);
-      if (receiverRoom !== currentRoom) {
-        socket.emit('private:error', { message: `${receiver} is not in this room.` });
+      if (!sendingAllowed) {
+        // Allow if this is an existing DM conversation
+        const dmUsers = await getDirectMessageUsers(sender);
+        sendingAllowed = dmUsers.includes(receiver);
+      }
+
+      if (!sendingAllowed) {
+        socket.emit('private:error', {
+          message: currentRoom
+            ? `${receiver} is not in this room.`
+            : 'No existing conversation with this user.',
+        });
         return;
       }
 
@@ -108,12 +130,23 @@ export function registerPrivateMessageHandler(socket: Socket, io: Server): void 
       const message = createPrivateMessage(sender, receiver, text);
       await savePrivateMessage(message);
 
-      // Deliver to sender and receiver only — never to the whole room
+      // Track DM conversation for both users and refresh TTL
+      await addDirectMessageUser(sender, receiver);
+
+      // Deliver to sender
       socket.emit('private:receive', message);
 
+      // Deliver to receiver if online + update their unread count and DM list
       const receiverSocketId = await getSocketIdByUsername(receiver);
       if (receiverSocketId) {
         io.to(receiverSocketId).emit('private:receive', message);
+
+        const count = await incrementUnread(receiver, sender);
+        io.to(receiverSocketId).emit('unread:update', { from: sender, count });
+
+        // Emit updated DM list so the receiver's Dashboard stays in sync
+        const dmList = await getDirectMessagesWithUnread(receiver);
+        io.to(receiverSocketId).emit('dm:list', { users: dmList });
       }
     } catch (err) {
       console.error('Error sending private message:', err);

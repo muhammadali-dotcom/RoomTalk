@@ -57,6 +57,7 @@ export default function ChatScreen({ roomId, username }: Props) {
   const [selectedUser, setSelectedUser]       = useState<string | null>(null);
   const [directMessages, setDirectMessages]   = useState<string[]>([]);
   const [privateMessages, setPrivateMessages] = useState<Record<string, PrivateMessage[]>>({});
+  const [unreadCounts, setUnreadCounts]       = useState<Record<string, number>>({});
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef       = useRef<HTMLInputElement>(null);
@@ -190,12 +191,34 @@ export default function ChatScreen({ roomId, username }: Props) {
     };
   }, [roomId, router, username]);
 
+  // Separate effect so the handler always captures the current activeChat/selectedUser
+  useEffect(() => {
+    function onUnreadUpdate({ from, count }: { from: string; count: number }) {
+      if (activeChat === 'private' && selectedUser === from) {
+        // User is already viewing this chat — keep count at zero
+        setUnreadCounts((prev) => ({ ...prev, [from]: 0 }));
+      } else {
+        setUnreadCounts((prev) => ({ ...prev, [from]: count }));
+        // Make sure sender appears in the DM list even if chat was never opened
+        setDirectMessages((prev) =>
+          prev.includes(from) ? prev : [...prev, from],
+        );
+      }
+    }
+
+    socket.on('unread:update', onUnreadUpdate);
+    return () => {
+      socket.off('unread:update', onUnreadUpdate);
+    };
+  }, [activeChat, selectedUser]);
+
   // Called when clicking an online user — registers the DM and fetches Redis history
   function openPrivateChat(targetUser: string) {
     setSelectedUser(targetUser);
     setActiveChat('private');
     setInput('');
     setMsgError('');
+    setUnreadCounts((prev) => ({ ...prev, [targetUser]: 0 }));
     setDirectMessages((prev) =>
       prev.includes(targetUser) ? prev : [...prev, targetUser],
     );
@@ -209,6 +232,7 @@ export default function ChatScreen({ roomId, username }: Props) {
     setActiveChat('private');
     setInput('');
     setMsgError('');
+    setUnreadCounts((prev) => ({ ...prev, [partner]: 0 }));
     socket.emit('private:open', { withUser: partner });
   }
 
@@ -519,6 +543,7 @@ export default function ChatScreen({ roomId, username }: Props) {
                       key={partner}
                       name={partner}
                       isActive={selectedUser === partner && isPrivate}
+                      unreadCount={unreadCounts[partner] ?? 0}
                       onClick={() => switchToDM(partner)}
                     />
                   ))}
@@ -688,13 +713,16 @@ function UserRow({
 function DMRow({
   name,
   isActive,
+  unreadCount = 0,
   onClick,
 }: {
-  name:     string;
-  isActive: boolean;
-  onClick:  () => void;
+  name:         string;
+  isActive:     boolean;
+  unreadCount?: number;
+  onClick:      () => void;
 }) {
   const avatarColor = getUserColor(name);
+  const hasUnread   = unreadCount > 0 && !isActive;
 
   return (
     <button
@@ -712,14 +740,21 @@ function DMRow({
       </div>
       <span
         className={`text-[13px] font-medium truncate ${
-          isActive ? 'text-violet-300' : 'text-gray-400'
+          isActive ? 'text-violet-300' : hasUnread ? 'text-white' : 'text-gray-400'
         }`}
       >
         {name}
       </span>
-      {isActive && (
+      {hasUnread ? (
+        <span
+          className="ml-auto flex-shrink-0 min-w-[18px] h-[18px] flex items-center justify-center rounded-full text-[10px] font-bold text-white px-1"
+          style={{ background: 'linear-gradient(135deg, #10B981, #059669)' }}
+        >
+          {unreadCount > 99 ? '99+' : unreadCount}
+        </span>
+      ) : isActive ? (
         <Lock size={10} className="text-violet-400 ml-auto flex-shrink-0" />
-      )}
+      ) : null}
     </button>
   );
 }

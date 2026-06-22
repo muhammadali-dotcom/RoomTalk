@@ -8,3 +8,8 @@ export const privateMessagesKey = (userA: string, userB: string): string => {
   const [first, second] = [userA, userB].sort();
   return `private:${first}:${second}:messages`;
 };
+
+export const unreadKey = (receiver: string, sender: string) =>
+  `unread:${receiver}:${sender}`;
+
+export const dmUsersKey = (username: string) => `dm:${username}:users`;

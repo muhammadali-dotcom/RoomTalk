@@ -1,26 +1,35 @@
 'use client';
 
-import { useState } from 'react';
-import { Hash, MessageSquare, Users, Settings, Signal } from 'lucide-react';
+import { Hash, MessageSquare, Signal, Lock } from 'lucide-react';
 import Logo from './Logo';
+import { getUserColor, getUserAvatarLabel } from '@/lib/user-style';
 
-const NAV_ITEMS = [
-  { key: 'rooms',    label: 'Rooms',           icon: Hash,          badge: null },
-  { key: 'dms',      label: 'Direct Messages', icon: MessageSquare, badge: null },
-];
-
-interface Props {
-  activeTab?: string;
-  onTabChange?: (key: string) => void;
+export interface DmUser {
+  username: string;
+  unreadCount: number;
 }
 
-export default function Sidebar({ activeTab = 'rooms', onTabChange }: Props) {
-  const [active, setActive] = useState(activeTab);
+interface Props {
+  activeTab?:   string;
+  onTabChange?: (key: string) => void;
+  dmList?:      DmUser[];
+  onDmClick?:   (username: string) => void;
+  activeDM?:    string | null;
+}
 
-  function select(key: string) {
-    setActive(key);
-    onTabChange?.(key);
-  }
+export default function Sidebar({
+  activeTab  = 'rooms',
+  onTabChange,
+  dmList     = [],
+  onDmClick,
+  activeDM   = null,
+}: Props) {
+  const totalUnread = dmList.reduce((sum, d) => sum + d.unreadCount, 0);
+
+  const NAV_ITEMS = [
+    { key: 'rooms', label: 'Rooms',           icon: Hash,          badge: null },
+    { key: 'dms',   label: 'Direct Messages', icon: MessageSquare, badge: totalUnread > 0 ? String(totalUnread > 99 ? '99+' : totalUnread) : null },
+  ];
 
   return (
     <aside
@@ -37,30 +46,90 @@ export default function Sidebar({ activeTab = 'rooms', onTabChange }: Props) {
         <Logo size="md" />
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-        {NAV_ITEMS.map(({ key, label, icon: Icon, badge }) => (
-          <button
-            key={key}
-            onClick={() => select(key)}
-            className={`rt-sidebar-item w-full text-left ${active === key ? 'active' : ''}`}
-          >
-            <Icon size={17} className="flex-shrink-0" />
-            <span className="flex-1">{label}</span>
-            {badge && (
-              <span
-                className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full"
-                style={{
-                  background: 'rgba(239,68,68,0.18)',
-                  border:     '1px solid rgba(239,68,68,0.3)',
-                  color:      '#F87171',
-                }}
-              >
-                {badge}
-              </span>
-            )}
-          </button>
-        ))}
+      {/* Nav + DM list */}
+      <nav className="flex-1 px-3 py-4 overflow-y-auto">
+        <div className="space-y-1 mb-4">
+          {NAV_ITEMS.map(({ key, label, icon: Icon, badge }) => (
+            <button
+              key={key}
+              onClick={() => onTabChange?.(key)}
+              className={`rt-sidebar-item w-full text-left ${activeTab === key ? 'active' : ''}`}
+            >
+              <Icon size={17} className="flex-shrink-0" />
+              <span className="flex-1">{label}</span>
+              {badge && (
+                <span
+                  className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full"
+                  style={{
+                    background: 'rgba(239,68,68,0.18)',
+                    border:     '1px solid rgba(239,68,68,0.3)',
+                    color:      '#F87171',
+                  }}
+                >
+                  {badge}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* DM list — always visible when there are conversations */}
+        {dmList.length > 0 && (
+          <div>
+            <div
+              className="px-2 pb-2 mb-1"
+              style={{ borderTop: '1px solid rgba(148,163,184,0.07)', paddingTop: '12px' }}
+            >
+              <div className="flex items-center gap-2">
+                <Lock size={11} className="text-gray-500" />
+                <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                  Conversations
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-0.5">
+              {dmList.map((dm) => {
+                const isActive    = activeDM === dm.username;
+                const hasUnread   = dm.unreadCount > 0 && !isActive;
+                const avatarColor = getUserColor(dm.username);
+
+                return (
+                  <button
+                    key={dm.username}
+                    onClick={() => onDmClick?.(dm.username)}
+                    className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left transition-all ${
+                      isActive ? 'bg-violet-500/10 border border-violet-500/20' : 'hover:bg-white/5'
+                    }`}
+                  >
+                    <div
+                      className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0 ${avatarColor}`}
+                    >
+                      {getUserAvatarLabel(dm.username)}
+                    </div>
+                    <span
+                      className={`text-[13px] font-medium truncate ${
+                        isActive ? 'text-violet-300' : hasUnread ? 'text-white' : 'text-gray-400'
+                      }`}
+                    >
+                      {dm.username}
+                    </span>
+                    {hasUnread ? (
+                      <span
+                        className="ml-auto flex-shrink-0 min-w-[18px] h-[18px] flex items-center justify-center rounded-full text-[10px] font-bold text-white px-1"
+                        style={{ background: 'linear-gradient(135deg, #10B981, #059669)' }}
+                      >
+                        {dm.unreadCount > 99 ? '99+' : dm.unreadCount}
+                      </span>
+                    ) : isActive ? (
+                      <Lock size={10} className="text-violet-400 ml-auto flex-shrink-0" />
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Status card */}
@@ -75,10 +144,7 @@ export default function Sidebar({ activeTab = 'rooms', onTabChange }: Props) {
           <div className="flex items-center gap-2 mb-1">
             <span
               className="w-2 h-2 rounded-full flex-shrink-0"
-              style={{
-                background: '#22C55E',
-                boxShadow:  '0 0 6px rgba(34,197,94,0.7)',
-              }}
+              style={{ background: '#22C55E', boxShadow: '0 0 6px rgba(34,197,94,0.7)' }}
             />
             <span className="text-[13px] font-semibold text-white">Online</span>
             <Signal size={12} className="text-gray-500 ml-auto" />

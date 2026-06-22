@@ -1,18 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Clock, LogOut, Code2, TrendingUp, Users } from 'lucide-react';
+import { ArrowLeft, Clock, Code2, Lock, LogOut, Send, TrendingUp, Users } from 'lucide-react';
 import type { ReactNode } from 'react';
 import Logo from './Logo';
-import Sidebar from './Sidebar';
+import Sidebar, { type DmUser } from './Sidebar';
 import RoomCard, { type RoomDef } from './RoomCard';
 import { socket } from '@/lib/socket';
 import { useUserStore } from '@/store/useUserStore';
+import { getUserColor, getUserAvatarLabel, formatMessageTime } from '@/lib/user-style';
+
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 interface RoomFromServer {
-  id: string;
-  name: string;
+  id:          string;
+  name:        string;
   description: string;
   activeUsers: number;
 }
@@ -24,7 +27,17 @@ interface RoomVisual {
   iconColor:   string;
 }
 
-// Static visual config per room ID — counts come from the server
+interface PrivateMessage {
+  id:        string;
+  from:      string;
+  to:        string;
+  text:      string;
+  type:      'private';
+  createdAt: string;
+}
+
+// ─── Statics ─────────────────────────────────────────────────────────────────
+
 const ROOM_VISUAL: Record<string, RoomVisual> = {
   developers: {
     icon:       <Code2 size={28} />,
@@ -46,22 +59,41 @@ const ROOM_VISUAL: Record<string, RoomVisual> = {
   },
 };
 
-interface Props {
-  username: string;
-}
+// ─── Component ───────────────────────────────────────────────────────────────
+
+interface Props { username: string }
 
 export default function Dashboard({ username }: Props) {
-  const router = useRouter();
+  const router       = useRouter();
   const clearUsername = useUserStore((s) => s.clearUsername);
 
-  const [rooms, setRooms] = useState<RoomFromServer[]>([]);
+  // Room state
+  const [rooms,        setRooms]        = useState<RoomFromServer[]>([]);
   const [joiningRoomId, setJoiningRoomId] = useState<string | null>(null);
-  const [roomError, setRoomError] = useState<string>('');
+  const [roomError,    setRoomError]    = useState('');
+
+  // Sidebar tab
+  const [sidebarTab, setSidebarTab] = useState('rooms');
+
+  // DM state
+  const [directMessages, setDirectMessages] = useState<DmUser[]>([]);
+  const [privateMessages, setPrivateMessages] = useState<Record<string, PrivateMessage[]>>({});
+  const [activeDM,    setActiveDM]    = useState<string | null>(null);
+  const [dmInput,     setDmInput]     = useState('');
+  const [dmError,     setDmError]     = useState('');
+
+  const dmMessagesEndRef = useRef<HTMLDivElement>(null);
+  const dmInputRef       = useRef<HTMLInputElement>(null);
 
   const avatarInitial = username[0]?.toUpperCase() ?? 'U';
 
+  // Scroll to bottom of DM panel when messages change
   useEffect(() => {
-    // If socket is disconnected (e.g. page refresh), go back to home to reconnect
+    dmMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [privateMessages, activeDM]);
+
+  // ── Main socket listeners ──────────────────────────────────────────────────
+  useEffect(() => {
     if (!socket.connected) {
       router.replace('/');
       return;
@@ -72,13 +104,8 @@ export default function Dashboard({ username }: Props) {
       router.replace('/');
     }
 
-    function onRoomsList(data: RoomFromServer[]) {
-      setRooms(data);
-    }
-
-    function onRoomsUpdate(data: RoomFromServer[]) {
-      setRooms(data);
-    }
+    function onRoomsList(data: RoomFromServer[])  { setRooms(data); }
+    function onRoomsUpdate(data: RoomFromServer[]) { setRooms(data); }
 
     function onRoomJoined({ roomId }: { roomId: string }) {
       setJoiningRoomId(null);
@@ -90,27 +117,100 @@ export default function Dashboard({ username }: Props) {
       setRoomError(message);
     }
 
-    socket.on('user:logged-out', onLoggedOut);
-    socket.on('rooms:list', onRoomsList);
-    socket.on('rooms:update', onRoomsUpdate);
-    socket.on('room:joined', onRoomJoined);
-    socket.on('room:error', onRoomError);
+    // Full DM list from server (on load or after dm:open)
+    function onDmList({ users }: { users: DmUser[] }) {
+      setDirectMessages(users);
+    }
 
-    // Request the initial room list with counts
+    // New private message arrived on Dashboard
+    function onPrivateReceive(msg: PrivateMessage) {
+      const partner = msg.from === username ? msg.to : msg.from;
+
+      setPrivateMessages((prev) => {
+        const existing = prev[partner] ?? [];
+        if (existing.some((m) => m.id === msg.id)) return prev;
+        return { ...prev, [partner]: [...existing, msg] };
+      });
+
+      // Add partner to DM list if not already there
+      setDirectMessages((prev) => {
+        if (prev.some((d) => d.username === partner)) return prev;
+        return [...prev, { username: partner, unreadCount: 0 }];
+      });
+    }
+
+    // History loaded after dm:open
+    function onPrivateHistory({
+      withUser,
+      messages: history,
+    }: {
+      withUser: string;
+      messages: PrivateMessage[];
+    }) {
+      setPrivateMessages((prev) => {
+        const existing = prev[withUser] ?? [];
+        if (existing.length === 0) return { ...prev, [withUser]: history };
+        const historyIds = new Set(history.map((m) => m.id));
+        const live = existing.filter((m) => !historyIds.has(m.id));
+        return { ...prev, [withUser]: [...history, ...live] };
+      });
+    }
+
+    function onPrivateError({ message }: { message: string }) {
+      setDmError(message);
+    }
+
+    socket.on('user:logged-out',  onLoggedOut);
+    socket.on('rooms:list',       onRoomsList);
+    socket.on('rooms:update',     onRoomsUpdate);
+    socket.on('room:joined',      onRoomJoined);
+    socket.on('room:error',       onRoomError);
+    socket.on('dm:list',          onDmList);
+    socket.on('private:receive',  onPrivateReceive);
+    socket.on('private:history',  onPrivateHistory);
+    socket.on('private:error',    onPrivateError);
+
     socket.emit('rooms:get');
+    socket.emit('dm:list:get');
 
     return () => {
-      socket.off('user:logged-out', onLoggedOut);
-      socket.off('rooms:list', onRoomsList);
-      socket.off('rooms:update', onRoomsUpdate);
-      socket.off('room:joined', onRoomJoined);
-      socket.off('room:error', onRoomError);
+      socket.off('user:logged-out',  onLoggedOut);
+      socket.off('rooms:list',       onRoomsList);
+      socket.off('rooms:update',     onRoomsUpdate);
+      socket.off('room:joined',      onRoomJoined);
+      socket.off('room:error',       onRoomError);
+      socket.off('dm:list',          onDmList);
+      socket.off('private:receive',  onPrivateReceive);
+      socket.off('private:history',  onPrivateHistory);
+      socket.off('private:error',    onPrivateError);
     };
-  }, [clearUsername, router]);
+  }, [clearUsername, router, username]);
 
-  function logout() {
-    socket.emit('user:logout');
-  }
+  // Separate effect so this handler always sees the latest activeDM
+  useEffect(() => {
+    function onUnreadUpdate({ from, count }: { from: string; count: number }) {
+      setDirectMessages((prev) => {
+        const exists = prev.some((d) => d.username === from);
+        // If user is currently viewing this DM, force count to 0
+        const effectiveCount = activeDM === from ? 0 : count;
+        if (exists) {
+          return prev.map((d) =>
+            d.username === from ? { ...d, unreadCount: effectiveCount } : d,
+          );
+        }
+        return [...prev, { username: from, unreadCount: effectiveCount }];
+      });
+    }
+
+    socket.on('unread:update', onUnreadUpdate);
+    return () => {
+      socket.off('unread:update', onUnreadUpdate);
+    };
+  }, [activeDM]);
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
+
+  function logout() { socket.emit('user:logout'); }
 
   function joinRoom(roomId: string) {
     setRoomError('');
@@ -118,7 +218,43 @@ export default function Dashboard({ username }: Props) {
     socket.emit('room:join', { roomId });
   }
 
-  // Merge server data with frontend visual config
+  function openDM(partner: string) {
+    setActiveDM(partner);
+    setSidebarTab('dms');
+    setDmError('');
+    // Reset badge immediately in local state
+    setDirectMessages((prev) =>
+      prev.map((d) => (d.username === partner ? { ...d, unreadCount: 0 } : d)),
+    );
+    socket.emit('dm:open', { withUser: partner });
+  }
+
+  function closeDM() {
+    setActiveDM(null);
+    setDmInput('');
+    setDmError('');
+  }
+
+  function sendDMMessage() {
+    const text = dmInput.trim();
+    if (!text || !activeDM) return;
+    if (text.length > 500) {
+      setDmError('Message cannot exceed 500 characters.');
+      return;
+    }
+    setDmError('');
+    socket.emit('private:send', { to: activeDM, text });
+    setDmInput('');
+    dmInputRef.current?.focus();
+  }
+
+  function handleSidebarTabChange(key: string) {
+    setSidebarTab(key);
+    if (key === 'rooms') closeDM();
+  }
+
+  // ── Derived data ──────────────────────────────────────────────────────────
+
   const roomDefs: RoomDef[] = rooms.map((r) => {
     const visual = ROOM_VISUAL[r.id];
     return {
@@ -134,6 +270,10 @@ export default function Dashboard({ username }: Props) {
     };
   });
 
+  const dmMessages = activeDM ? (privateMessages[activeDM] ?? []) : [];
+
+  // ── Render ────────────────────────────────────────────────────────────────
+
   return (
     <div
       className="flex flex-col"
@@ -142,7 +282,6 @@ export default function Dashboard({ username }: Props) {
         background: 'radial-gradient(ellipse 70% 50% at 10% 20%, rgba(16,185,129,0.04) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 90% 80%, rgba(59,130,246,0.04) 0%, transparent 60%), #070B10',
       }}
     >
-      {/* Outer bordered shell */}
       <div
         className="flex flex-col flex-1 overflow-hidden m-2 sm:m-3 rounded-2xl"
         style={{
@@ -195,61 +334,239 @@ export default function Dashboard({ username }: Props) {
 
         {/* Body */}
         <div className="flex flex-1 overflow-hidden">
+          {/* Sidebar */}
           <div className="hidden md:flex flex-shrink-0">
-            <Sidebar />
+            <Sidebar
+              activeTab={sidebarTab}
+              onTabChange={handleSidebarTabChange}
+              dmList={directMessages}
+              onDmClick={openDM}
+              activeDM={activeDM}
+            />
           </div>
 
-          <main
-            className="flex-1 overflow-y-auto"
-            style={{ background: 'rgba(8,12,20,0.7)' }}
-          >
-            <div className="px-6 sm:px-8 py-7 max-w-[900px]">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-7">
-                <div>
-                  <h1 className="text-[22px] font-bold text-white tracking-tight">Available Rooms</h1>
-                  <p className="text-[13px] text-gray-400 mt-1">Join a room to start chatting with others</p>
-                </div>
+          {/* Main content */}
+          {activeDM ? (
+            // ── DM Chat Panel ──────────────────────────────────────────────
+            <div className="flex-1 flex flex-col overflow-hidden" style={{ background: 'rgba(8,12,20,0.85)' }}>
+              {/* DM header */}
+              <div
+                className="flex-shrink-0 flex items-center gap-3 px-5 py-3"
+                style={{ borderBottom: '1px solid rgba(148,163,184,0.09)', background: 'rgba(10,14,22,0.95)' }}
+              >
+                <button
+                  onClick={closeDM}
+                  className="flex items-center gap-1.5 text-[13px] text-gray-400 hover:text-white transition-colors flex-shrink-0"
+                >
+                  <ArrowLeft size={15} />
+                  <span className="hidden sm:inline">Back</span>
+                </button>
+
+                <div
+                  className="w-px h-5 flex-shrink-0"
+                  style={{ background: 'rgba(148,163,184,0.12)' }}
+                />
+
+                <Lock size={14} className="text-violet-400 flex-shrink-0" />
+                <span className="text-[15px] font-semibold text-white truncate">{activeDM}</span>
+                <span className="text-[12px] text-violet-500/70 hidden sm:block flex-shrink-0">
+                  Private · messages expire after 12h
+                </span>
               </div>
 
-              {roomError && (
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto px-5 py-5 space-y-3">
+                <div className="flex justify-center">
+                  <span
+                    className="text-[11.5px] text-gray-500 px-3 py-1 rounded-full"
+                    style={{
+                      background: 'rgba(255,255,255,0.03)',
+                      border:     '1px solid rgba(148,163,184,0.08)',
+                    }}
+                  >
+                    Private chat with {activeDM}. Only you two can see this.
+                  </span>
+                </div>
+
+                {dmMessages.length === 0 && (
+                  <div className="flex justify-center pt-4">
+                    <span className="text-[12px] text-gray-600">No messages yet.</span>
+                  </div>
+                )}
+
+                {dmMessages.map((msg) => {
+                  const isSelf = msg.from === username;
+                  if (isSelf) {
+                    return (
+                      <div key={msg.id} className="flex justify-end">
+                        <div className="flex flex-col gap-1 max-w-[80%] items-end">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10.5px] text-gray-600">
+                              {formatMessageTime(msg.createdAt)}
+                            </span>
+                            <span className="text-[11.5px] font-semibold text-violet-400">You</span>
+                          </div>
+                          <div
+                            className="px-3.5 py-2 rounded-2xl text-[13.5px] text-white leading-relaxed break-words"
+                            style={{
+                              background: 'rgba(139,92,246,0.15)',
+                              border:     '1px solid rgba(139,92,246,0.25)',
+                            }}
+                          >
+                            {msg.text}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  const avatarColor = getUserColor(msg.from);
+                  const avatarLabel = getUserAvatarLabel(msg.from);
+                  return (
+                    <div key={msg.id} className="flex justify-start items-start gap-2.5">
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0 ${avatarColor}`}
+                      >
+                        {avatarLabel}
+                      </div>
+                      <div className="flex flex-col gap-1 max-w-[80%] items-start">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[11.5px] font-semibold text-gray-300">{msg.from}</span>
+                          <span className="text-[10.5px] text-gray-600">
+                            {formatMessageTime(msg.createdAt)}
+                          </span>
+                        </div>
+                        <div
+                          className="px-3.5 py-2 rounded-2xl text-[13.5px] text-white leading-relaxed break-words"
+                          style={{
+                            background: 'rgba(255,255,255,0.05)',
+                            border:     '1px solid rgba(148,163,184,0.1)',
+                          }}
+                        >
+                          {msg.text}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                <div ref={dmMessagesEndRef} />
+              </div>
+
+              {/* Error banner */}
+              {dmError && (
                 <div
-                  className="mb-4 px-4 py-3 rounded-xl text-[13px] text-red-400"
+                  className="flex-shrink-0 mx-5 mb-2 px-4 py-2 rounded-xl text-[12.5px] text-red-400"
                   style={{
                     background: 'rgba(239,68,68,0.08)',
                     border:     '1px solid rgba(239,68,68,0.2)',
                   }}
                 >
-                  {roomError}
+                  {dmError}
                 </div>
               )}
 
-              <div className="space-y-3">
-                {roomDefs.length === 0 ? (
-                  <div className="text-[13px] text-gray-500 py-4">Loading rooms…</div>
-                ) : (
-                  roomDefs.map((room) => (
-                    <RoomCard
-                      key={room.id}
-                      room={room}
-                      joining={joiningRoomId === room.id}
-                      onJoin={() => joinRoom(room.id)}
-                    />
-                  ))
-                )}
-              </div>
-
+              {/* Input bar */}
               <div
-                className="mt-6 flex items-center gap-2.5 px-4 py-3 rounded-xl text-[12.5px] text-gray-500"
-                style={{
-                  background: 'rgba(255,255,255,0.02)',
-                  border:     '1px solid rgba(148,163,184,0.07)',
-                }}
+                className="flex-shrink-0 px-5 py-4"
+                style={{ borderTop: '1px solid rgba(148,163,184,0.08)' }}
               >
-                <Clock size={14} className="text-gray-600 flex-shrink-0" />
-                Chats are temporary and automatically deleted after 12 hours.
+                <div className="flex items-center gap-3">
+                  <div
+                    className="flex-1 flex items-center px-4 rounded-xl"
+                    style={{
+                      background: 'rgba(139,92,246,0.06)',
+                      border:     '1px solid rgba(139,92,246,0.2)',
+                      height:     '44px',
+                    }}
+                  >
+                    <input
+                      ref={dmInputRef}
+                      value={dmInput}
+                      onChange={(e) => {
+                        setDmInput(e.target.value);
+                        if (dmError) setDmError('');
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          sendDMMessage();
+                        }
+                      }}
+                      placeholder={`Message ${activeDM}…`}
+                      maxLength={500}
+                      className="flex-1 bg-transparent text-sm text-white placeholder-gray-500 outline-none"
+                    />
+                  </div>
+
+                  <button
+                    onClick={sendDMMessage}
+                    disabled={!dmInput.trim()}
+                    className="flex items-center justify-center w-11 h-11 rounded-xl flex-shrink-0 transition-opacity disabled:opacity-40"
+                    style={{
+                      background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)',
+                      boxShadow:  '0 4px 16px rgba(139,92,246,0.3)',
+                    }}
+                  >
+                    <Send size={16} className="text-white" />
+                  </button>
+                </div>
               </div>
             </div>
-          </main>
+          ) : (
+            // ── Room Cards ────────────────────────────────────────────────
+            <main
+              className="flex-1 overflow-y-auto"
+              style={{ background: 'rgba(8,12,20,0.7)' }}
+            >
+              <div className="px-6 sm:px-8 py-7 max-w-[900px]">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-7">
+                  <div>
+                    <h1 className="text-[22px] font-bold text-white tracking-tight">Available Rooms</h1>
+                    <p className="text-[13px] text-gray-400 mt-1">Join a room to start chatting with others</p>
+                  </div>
+                </div>
+
+                {roomError && (
+                  <div
+                    className="mb-4 px-4 py-3 rounded-xl text-[13px] text-red-400"
+                    style={{
+                      background: 'rgba(239,68,68,0.08)',
+                      border:     '1px solid rgba(239,68,68,0.2)',
+                    }}
+                  >
+                    {roomError}
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  {roomDefs.length === 0 ? (
+                    <div className="text-[13px] text-gray-500 py-4">Loading rooms…</div>
+                  ) : (
+                    roomDefs.map((room) => (
+                      <RoomCard
+                        key={room.id}
+                        room={room}
+                        joining={joiningRoomId === room.id}
+                        onJoin={() => joinRoom(room.id)}
+                      />
+                    ))
+                  )}
+                </div>
+
+                <div
+                  className="mt-6 flex items-center gap-2.5 px-4 py-3 rounded-xl text-[12.5px] text-gray-500"
+                  style={{
+                    background: 'rgba(255,255,255,0.02)',
+                    border:     '1px solid rgba(148,163,184,0.07)',
+                  }}
+                >
+                  <Clock size={14} className="text-gray-600 flex-shrink-0" />
+                  Chats are temporary and automatically deleted after 12 hours.
+                </div>
+              </div>
+            </main>
+          )}
         </div>
 
         {/* Mobile bottom nav */}
@@ -261,13 +578,14 @@ export default function Dashboard({ username }: Props) {
           }}
         >
           {[
-            { label: 'Rooms',    active: true  },
-            { label: 'Messages', active: false },
-            { label: 'Friends',  active: false },
-            { label: 'Settings', active: false },
+            { label: 'Rooms',    active: !activeDM },
+            { label: 'Messages', active: !!activeDM },
           ].map(({ label, active }) => (
             <button
               key={label}
+              onClick={() => {
+                if (label === 'Rooms') closeDM();
+              }}
               className="flex-1 py-2 text-[11px] font-medium rounded-lg transition-colors"
               style={{ color: active ? '#34D399' : '#6B7280' }}
             >
