@@ -72,9 +72,6 @@ export default function Dashboard({ username }: Props) {
   const [joiningRoomId, setJoiningRoomId] = useState<string | null>(null);
   const [roomError,    setRoomError]    = useState('');
 
-  // Sidebar tab
-  const [sidebarTab, setSidebarTab] = useState('rooms');
-
   // DM state
   const [directMessages, setDirectMessages] = useState<DmUser[]>([]);
   const [privateMessages, setPrivateMessages] = useState<Record<string, PrivateMessage[]>>({});
@@ -220,7 +217,6 @@ export default function Dashboard({ username }: Props) {
 
   function openDM(partner: string) {
     setActiveDM(partner);
-    setSidebarTab('dms');
     setDmError('');
     // Reset badge immediately in local state
     setDirectMessages((prev) =>
@@ -248,9 +244,8 @@ export default function Dashboard({ username }: Props) {
     dmInputRef.current?.focus();
   }
 
-  function handleSidebarTabChange(key: string) {
-    setSidebarTab(key);
-    if (key === 'rooms') closeDM();
+  function handleRoomsClick() {
+    closeDM();
   }
 
   // ── Derived data ──────────────────────────────────────────────────────────
@@ -337,10 +332,9 @@ export default function Dashboard({ username }: Props) {
           {/* Sidebar */}
           <div className="hidden md:flex flex-shrink-0">
             <Sidebar
-              activeTab={sidebarTab}
-              onTabChange={handleSidebarTabChange}
               dmList={directMessages}
               onDmClick={openDM}
+              onRoomsClick={handleRoomsClick}
               activeDM={activeDM}
             />
           </div>
