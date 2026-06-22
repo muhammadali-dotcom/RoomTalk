@@ -9,13 +9,15 @@ export interface DmUser {
 }
 
 interface Props {
-  dmList?:      DmUser[];
-  onDmClick?:   (username: string) => void;
+  username?: string;
+  dmList?: DmUser[];
+  onDmClick?: (username: string) => void;
   onRoomsClick?: () => void;
-  activeDM?:    string | null;
+  activeDM?: string | null;
 }
 
 export default function Sidebar({
+  username = '',
   dmList = [],
   onDmClick,
   onRoomsClick,
@@ -27,8 +29,8 @@ export default function Sidebar({
       style={{
         width:       '260px',
         minWidth:    '260px',
-        background:  'rgba(10,14,22,0.95)',
-        borderRight: '1px solid rgba(148,163,184,0.09)',
+        background:  'var(--rt-bg-sidebar)',
+        borderRight: '1px solid var(--rt-border-soft)',
       }}
     >
       {/* Nav area */}
@@ -38,8 +40,8 @@ export default function Sidebar({
           onClick={() => onRoomsClick?.()}
           className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left transition-all ${
             !activeDM
-              ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-300'
-              : 'text-gray-400 hover:text-gray-300'
+              ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-300'
+              : 'text-slate-500 dark:text-gray-400 hover:text-slate-700 dark:hover:text-gray-300 hover:bg-slate-100 dark:hover:bg-white/5'
           }`}
         >
           <Hash size={15} className="flex-shrink-0" />
@@ -49,10 +51,13 @@ export default function Sidebar({
         {/* Direct Messages section */}
         {dmList.length > 0 ? (
           <div>
-            <div className="px-2 pb-2" style={{ borderTop: '1px solid rgba(148,163,184,0.07)', paddingTop: '12px' }}>
+            <div
+              className="px-2 pb-2"
+              style={{ borderTop: '1px solid var(--rt-border-soft)', paddingTop: '12px' }}
+            >
               <div className="flex items-center gap-2">
-                <Lock size={11} className="text-gray-500 flex-shrink-0" />
-                <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                <Lock size={11} className="text-slate-400 dark:text-gray-500 flex-shrink-0" />
+                <span className="text-[11px] font-semibold text-slate-400 dark:text-gray-500 uppercase tracking-wide">
                   Direct Messages
                 </span>
               </div>
@@ -60,8 +65,8 @@ export default function Sidebar({
 
             <div className="space-y-0.5">
               {dmList.map((dm) => {
-                const isActive    = activeDM === dm.username;
-                const hasUnread   = dm.unreadCount > 0 && !isActive;
+                const isActive  = activeDM === dm.username;
+                const hasUnread = dm.unreadCount > 0 && !isActive;
                 const avatarColor = getUserColor(dm.username);
 
                 return (
@@ -71,7 +76,7 @@ export default function Sidebar({
                     className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left transition-all ${
                       isActive
                         ? 'bg-violet-500/10 border border-violet-500/20'
-                        : 'hover:bg-white/5'
+                        : 'hover:bg-slate-100 dark:hover:bg-white/5'
                     }`}
                   >
                     <div
@@ -81,7 +86,11 @@ export default function Sidebar({
                     </div>
                     <span
                       className={`text-[13px] font-medium truncate ${
-                        isActive ? 'text-violet-300' : hasUnread ? 'text-white' : 'text-gray-400'
+                        isActive
+                          ? 'text-violet-500 dark:text-violet-300'
+                          : hasUnread
+                          ? 'text-slate-900 dark:text-white'
+                          : 'text-slate-500 dark:text-gray-400'
                       }`}
                     >
                       {dm.username}
@@ -103,8 +112,11 @@ export default function Sidebar({
             </div>
           </div>
         ) : (
-          <div className="px-2 pt-2" style={{ borderTop: '1px solid rgba(148,163,184,0.07)', paddingTop: '12px' }}>
-            <span className="text-[11px] text-gray-600">No direct messages yet</span>
+          <div
+            className="px-2 pt-2"
+            style={{ borderTop: '1px solid var(--rt-border-soft)', paddingTop: '12px' }}
+          >
+            <span className="text-[11px] text-slate-400 dark:text-gray-600">No direct messages yet</span>
           </div>
         )}
       </nav>
@@ -114,8 +126,8 @@ export default function Sidebar({
         <div
           className="px-4 py-3 rounded-xl"
           style={{
-            background: 'rgba(255,255,255,0.025)',
-            border:     '1px solid rgba(148,163,184,0.08)',
+            background: 'var(--rt-bg-surface)',
+            border:     '1px solid var(--rt-border-soft)',
           }}
         >
           <div className="flex items-center gap-2 mb-1">
@@ -123,9 +135,8 @@ export default function Sidebar({
               className="w-2 h-2 rounded-full flex-shrink-0"
               style={{ background: '#22C55E', boxShadow: '0 0 6px rgba(34,197,94,0.7)' }}
             />
-            <span className="text-[13px] font-semibold text-white">Online</span>
+            <span className="text-[13px] font-semibold text-slate-900 dark:text-white truncate">{username}</span>
           </div>
-          <p className="text-[11.5px] text-gray-500 pl-4">Connected to chat server</p>
         </div>
       </div>
     </aside>

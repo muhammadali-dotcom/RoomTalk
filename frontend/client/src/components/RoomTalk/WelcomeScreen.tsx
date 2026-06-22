@@ -4,8 +4,7 @@ import { useState } from "react";
 import { Users, MessageSquare, Shield, MessageCircle, Check, Hash, LogIn, Clock } from "lucide-react";
 import Logo from "./Logo";
 import UsernameModal from "./UsernameModal";
-
-
+import ThemeToggle from "@/components/theme/ThemeToggle";
 
 const FEATURES = [
   {
@@ -34,26 +33,21 @@ const FEATURES = [
   },
 ];
 
-
 export default function WelcomeScreen() {
   const [showModal, setShowModal] = useState(false);
 
   return (
     <div
       className="min-h-screen flex items-center justify-center p-3 sm:p-5"
-      style={{
-        background:
-          "radial-gradient(ellipse 80% 60% at 15% 40%, rgba(16,185,129,0.05) 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 85% 20%, rgba(59,130,246,0.05) 0%, transparent 55%), #070B10",
-      }}
+      style={{ background: "var(--rt-bg-page-gradient)" }}
     >
       {/* ── Outer app border ──────────────────────────────────────── */}
       <div
         className="relative w-full max-w-6xl rounded-2xl overflow-hidden"
         style={{
-          background: "rgba(10,15,24,0.97)",
-          border: "1px solid rgba(148,163,184,0.11)",
-          boxShadow:
-            "0 40px 100px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.04)",
+          background: "var(--rt-bg-card)",
+          border: "1px solid var(--rt-border)",
+          boxShadow: "var(--rt-shadow-page)",
         }}
       >
         {/* Subtle top-edge glow */}
@@ -68,11 +62,10 @@ export default function WelcomeScreen() {
         {/* ── Navbar ──────────────────────────────────────────────── */}
         <header
           className="flex items-center justify-between px-6 sm:px-8 py-4"
-          style={{ borderBottom: "1px solid rgba(148,163,184,0.07)" }}
+          style={{ borderBottom: "1px solid var(--rt-border-soft)" }}
         >
           <Logo size="md" />
-
-          {/* Top-right join button removed per UX request */}
+          <ThemeToggle />
         </header>
 
         {/* ── Two-column grid ──────────────────────────────────────── */}
@@ -80,7 +73,7 @@ export default function WelcomeScreen() {
           {/* LEFT — hero + features ─────────────────────────────── */}
           <div className="flex flex-col justify-center px-7 sm:px-10 py-10 lg:py-14">
             {/* Headline */}
-            <h1 className="text-[36px] sm:text-[44px] font-bold text-white leading-[1.15] tracking-tight">
+            <h1 className="text-[36px] sm:text-[44px] font-bold text-slate-900 dark:text-white leading-[1.15] tracking-tight">
               Real-time conversations,
               <br />
               organized by{" "}
@@ -92,7 +85,7 @@ export default function WelcomeScreen() {
               </span>
             </h1>
 
-            <p className="mt-4 text-[14.5px] text-gray-400 leading-relaxed max-w-[420px]">
+            <p className="mt-4 text-[14.5px] text-slate-500 dark:text-gray-400 leading-relaxed max-w-[420px]">
               Join topic-based rooms, chat publicly with members, start private
               conversations, and more — no account needed.
             </p>
@@ -105,16 +98,14 @@ export default function WelcomeScreen() {
                     key={title}
                     className="p-4 rounded-xl transition-colors"
                     style={{
-                      background: "rgba(255,255,255,0.022)",
-                      border: "1px solid rgba(148,163,184,0.08)",
+                      background: "var(--rt-bg-surface)",
+                      border: "1px solid var(--rt-border-soft)",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor =
-                        "rgba(148,163,184,0.15)";
+                      e.currentTarget.style.borderColor = "var(--rt-border)";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor =
-                        "rgba(148,163,184,0.08)";
+                      e.currentTarget.style.borderColor = "var(--rt-border-soft)";
                     }}
                   >
                     <div
@@ -123,10 +114,10 @@ export default function WelcomeScreen() {
                     >
                       <Icon size={16} className={color} />
                     </div>
-                    <div className="text-[13px] font-semibold text-white mb-1">
+                    <div className="text-[13px] font-semibold text-slate-900 dark:text-white mb-1">
                       {title}
                     </div>
-                    <div className="text-[12px] text-gray-500 leading-relaxed">
+                    <div className="text-[12px] text-slate-500 dark:text-gray-500 leading-relaxed">
                       {desc}
                     </div>
                   </div>
@@ -138,15 +129,14 @@ export default function WelcomeScreen() {
           {/* RIGHT — anonymous entry panel ──────────────────────── */}
           <div
             className="hidden lg:flex flex-col justify-center px-8 py-14"
-            style={{ borderLeft: "1px solid rgba(148,163,184,0.06)" }}
+            style={{ borderLeft: "1px solid var(--rt-border-soft)" }}
           >
             <div
               className="rounded-2xl p-6"
               style={{
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(148,163,184,0.1)",
-                boxShadow:
-                  "0 24px 64px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05)",
+                background: "var(--rt-bg-surface)",
+                border: "1px solid var(--rt-border)",
+                boxShadow: "var(--rt-shadow-card)",
                 backdropFilter: "blur(16px)",
               }}
             >
@@ -163,10 +153,10 @@ export default function WelcomeScreen() {
                   <MessageCircle size={16} className="text-emerald-400" />
                 </div>
                 <div>
-                  <div className="text-[15px] font-semibold text-white leading-tight">
+                  <div className="text-[15px] font-semibold text-slate-900 dark:text-white leading-tight">
                     Start chatting anonymously
                   </div>
-                  <div className="text-[12px] text-gray-500 mt-0.5">
+                  <div className="text-[12px] text-slate-500 dark:text-gray-500 mt-0.5">
                     No signup. Pick a temporary name and enter a room.
                   </div>
                 </div>
@@ -175,22 +165,22 @@ export default function WelcomeScreen() {
               {/* Divider */}
               <div
                 className="mb-5"
-                style={{ borderTop: "1px solid rgba(148,163,184,0.07)" }}
+                style={{ borderTop: "1px solid var(--rt-border-soft)" }}
               />
 
               {/* Temporary name field */}
               <div className="mb-4">
-                <label className="block text-[11.5px] font-medium text-gray-400 mb-1.5 tracking-wide uppercase">
+                <label className="block text-[11.5px] font-medium text-slate-500 dark:text-gray-400 mb-1.5 tracking-wide uppercase">
                   Temporary name
                 </label>
                 <div
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl"
                   style={{
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(148,163,184,0.1)",
+                    background: "var(--rt-bg-surface2)",
+                    border: "1px solid var(--rt-border)",
                   }}
                 >
-                  <span className="flex-1 text-[13.5px] text-gray-300 select-none font-mono">
+                  <span className="flex-1 text-[13.5px] text-slate-600 dark:text-gray-300 select-none font-mono">
                     Guest-4821
                   </span>
                   <div
@@ -207,7 +197,7 @@ export default function WelcomeScreen() {
 
               {/* Choose a room */}
               <div className="mb-5">
-                <label className="block text-[11.5px] font-medium text-gray-400 mb-1.5 tracking-wide uppercase">
+                <label className="block text-[11.5px] font-medium text-slate-500 dark:text-gray-400 mb-1.5 tracking-wide uppercase">
                   Choose a room
                 </label>
                 <div className="space-y-2">
@@ -221,7 +211,7 @@ export default function WelcomeScreen() {
                     }}
                   >
                     <Hash size={14} className="text-emerald-400 flex-shrink-0" />
-                    <span className="flex-1 text-[13px] font-medium text-white">
+                    <span className="flex-1 text-[13px] font-medium text-slate-900 dark:text-white">
                       Open Chat
                     </span>
                     <span
@@ -244,31 +234,27 @@ export default function WelcomeScreen() {
                       key={room.name}
                       className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-colors"
                       style={{
-                        background: "rgba(255,255,255,0.025)",
-                        border: "1px solid rgba(148,163,184,0.07)",
+                        background: "var(--rt-bg-surface)",
+                        border: "1px solid var(--rt-border-soft)",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor =
-                          "rgba(148,163,184,0.14)";
-                        e.currentTarget.style.background =
-                          "rgba(255,255,255,0.04)";
+                        e.currentTarget.style.borderColor = "var(--rt-border)";
+                        e.currentTarget.style.background = "var(--rt-bg-surface2)";
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor =
-                          "rgba(148,163,184,0.07)";
-                        e.currentTarget.style.background =
-                          "rgba(255,255,255,0.025)";
+                        e.currentTarget.style.borderColor = "var(--rt-border-soft)";
+                        e.currentTarget.style.background = "var(--rt-bg-surface)";
                       }}
                     >
-                      <Hash size={14} className="text-gray-600 flex-shrink-0" />
-                      <span className="flex-1 text-[13px] font-medium text-gray-400">
+                      <Hash size={14} className="text-slate-400 dark:text-gray-600 flex-shrink-0" />
+                      <span className="flex-1 text-[13px] font-medium text-slate-500 dark:text-gray-400">
                         {room.name}
                       </span>
                       <span
-                        className="text-[11px] text-gray-600 px-2 py-0.5 rounded-full"
+                        className="text-[11px] text-slate-400 dark:text-gray-600 px-2 py-0.5 rounded-full"
                         style={{
-                          background: "rgba(148,163,184,0.06)",
-                          border: "1px solid rgba(148,163,184,0.08)",
+                          background: "var(--rt-bg-surface2)",
+                          border: "1px solid var(--rt-border-soft)",
                         }}
                       >
                         {room.count}
@@ -300,7 +286,7 @@ export default function WelcomeScreen() {
               </button>
 
               {/* Footer */}
-              <div className="mt-4 flex items-center justify-center gap-1.5 text-[11.5px] text-gray-600">
+              <div className="mt-4 flex items-center justify-center gap-1.5 text-[11.5px] text-slate-400 dark:text-gray-600">
                 <Clock size={11} className="flex-shrink-0" />
                 Text-only · Auto-clears after 12h
               </div>
@@ -321,9 +307,7 @@ export default function WelcomeScreen() {
             if (e.target === e.currentTarget) setShowModal(false);
           }}
         >
-          <UsernameModal
-            onClose={() => setShowModal(false)}
-          />
+          <UsernameModal onClose={() => setShowModal(false)} />
         </div>
       )}
     </div>

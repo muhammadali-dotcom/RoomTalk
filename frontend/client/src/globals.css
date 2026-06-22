@@ -1,18 +1,75 @@
 @import "tailwindcss";
 
+/* ── Theme CSS variables ────────────────────────────────────────── */
+
 :root {
-  --main-bg: #070B10;
-  --secondary-bg: #10151C;
-  --card-bg: #151A21;
-  --card-hover: #1B222B;
-  --border: rgba(255,255,255,0.08);
-  --text-primary: #F8FAFC;
-  --text-secondary: #A1A1AA;
-  --text-muted: #71717A;
-  --accent-teal: #2DD4BF;
-  --accent-emerald: #34D399;
-  --online: #22C55E;
-  --error: #EF4444;
+  /* Light theme (default when .dark is NOT on <html>) */
+  --rt-bg-page:             #f8fafc;
+  --rt-bg-page-gradient:    radial-gradient(ellipse 80% 60% at 15% 40%, rgba(16,185,129,0.04) 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 85% 20%, rgba(59,130,246,0.04) 0%, transparent 55%), #f8fafc;
+  --rt-bg-dash-gradient:    radial-gradient(ellipse 70% 50% at 10% 20%, rgba(16,185,129,0.03) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 90% 80%, rgba(59,130,246,0.03) 0%, transparent 60%), #f8fafc;
+  --rt-bg-card:             rgba(255,255,255,0.98);
+  --rt-bg-header:           rgba(255,255,255,0.98);
+  --rt-bg-sidebar:          rgba(255,255,255,0.97);
+  --rt-bg-content:          rgba(248,250,252,0.9);
+  --rt-bg-surface:          rgba(241,245,249,0.7);
+  --rt-bg-surface2:         rgba(226,232,240,0.6);
+  --rt-bg-input:            #ffffff;
+  --rt-border:              rgba(100,116,139,0.28);
+  --rt-border-soft:         rgba(100,116,139,0.16);
+  --rt-text-primary:        #0f172a;
+  --rt-text-secondary:      #475569;
+  --rt-text-muted:          #94a3b8;
+  --rt-bubble-other-bg:     #ffffff;
+  --rt-bubble-other-border: rgba(148,163,184,0.3);
+  --rt-shadow-page:         0 20px 60px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
+  --rt-shadow-card:         0 4px 20px rgba(0,0,0,0.05);
+
+  /* Legacy variables (still used by old CSS classes) */
+  --main-bg:       var(--rt-bg-page);
+  --secondary-bg:  #e2e8f0;
+  --card-bg:       #ffffff;
+  --card-hover:    #f1f5f9;
+  --border:        var(--rt-border);
+  --text-primary:  var(--rt-text-primary);
+  --text-secondary:var(--rt-text-secondary);
+  --text-muted:    var(--rt-text-muted);
+  --accent-teal:   #2DD4BF;
+  --accent-emerald:#34D399;
+  --online:        #22C55E;
+  --error:         #EF4444;
+}
+
+.dark {
+  /* Dark theme overrides */
+  --rt-bg-page:             #070B10;
+  --rt-bg-page-gradient:    radial-gradient(ellipse 80% 60% at 15% 40%, rgba(16,185,129,0.05) 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 85% 20%, rgba(59,130,246,0.05) 0%, transparent 55%), #070B10;
+  --rt-bg-dash-gradient:    radial-gradient(ellipse 70% 50% at 10% 20%, rgba(16,185,129,0.04) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 90% 80%, rgba(59,130,246,0.04) 0%, transparent 60%), #070B10;
+  --rt-bg-card:             rgba(10,15,24,0.97);
+  --rt-bg-header:           rgba(10,14,22,0.98);
+  --rt-bg-sidebar:          rgba(10,14,22,0.95);
+  --rt-bg-content:          rgba(8,12,20,0.85);
+  --rt-bg-surface:          rgba(255,255,255,0.025);
+  --rt-bg-surface2:         rgba(255,255,255,0.04);
+  --rt-bg-input:            rgba(255,255,255,0.04);
+  --rt-border:              rgba(148,163,184,0.1);
+  --rt-border-soft:         rgba(148,163,184,0.07);
+  --rt-text-primary:        #F8FAFC;
+  --rt-text-secondary:      #9CA3AF;
+  --rt-text-muted:          #6B7280;
+  --rt-bubble-other-bg:     rgba(255,255,255,0.05);
+  --rt-bubble-other-border: rgba(148,163,184,0.1);
+  --rt-shadow-page:         0 40px 100px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.04);
+  --rt-shadow-card:         0 30px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+
+  /* Legacy variables */
+  --main-bg:       var(--rt-bg-page);
+  --secondary-bg:  #10151C;
+  --card-bg:       #151A21;
+  --card-hover:    #1B222B;
+  --border:        var(--rt-border);
+  --text-primary:  var(--rt-text-primary);
+  --text-secondary:var(--rt-text-secondary);
+  --text-muted:    var(--rt-text-muted);
 }
 
 html, body, #__next {
@@ -20,12 +77,12 @@ html, body, #__next {
 }
 
 body {
-  background: var(--main-bg);
-  color: var(--text-primary);
+  background: var(--rt-bg-page);
+  color: var(--rt-text-primary);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
 }
 
-/* ── Legacy classes kept for /rooms and /chat routes ─────────────── */
+/* ── Legacy classes (kept for /rooms and /chat routes) ───────────── */
 
 .container-panel {
   background: var(--card-bg);
@@ -71,8 +128,8 @@ body {
 .secondary { color: var(--text-secondary); }
 
 .pill {
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.02);
+  background: var(--rt-bg-surface);
+  border: 1px solid var(--rt-border-soft);
   padding: 4px 8px;
   border-radius: 9999px;
   font-size: 12px;
@@ -108,15 +165,15 @@ body {
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
-  color: #9CA3AF;
+  color: var(--rt-text-muted);
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   border: 1px solid transparent;
   user-select: none;
 }
 .rt-sidebar-item:hover {
-  background: rgba(255,255,255,0.04);
-  color: #E2E8F0;
+  background: var(--rt-bg-surface2);
+  color: var(--rt-text-secondary);
 }
 .rt-sidebar-item.active {
   background: rgba(52, 211, 153, 0.08);
@@ -125,8 +182,8 @@ body {
 }
 
 .rt-room-card {
-  background: rgba(17, 24, 39, 0.6);
-  border: 1px solid rgba(148, 163, 184, 0.1);
+  background: var(--rt-bg-surface);
+  border: 1px solid var(--rt-border);
   border-radius: 14px;
   padding: 20px;
   transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
@@ -134,7 +191,7 @@ body {
 .rt-room-card:hover {
   border-color: rgba(52, 211, 153, 0.28);
   transform: translateY(-1px);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3), 0 0 0 1px rgba(52,211,153,0.06);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15), 0 0 0 1px rgba(52,211,153,0.06);
 }
 
 .rt-btn-green {

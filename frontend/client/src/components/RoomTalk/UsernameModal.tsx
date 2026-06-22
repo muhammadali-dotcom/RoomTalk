@@ -76,10 +76,10 @@ export default function UsernameModal({ onClose }: Props) {
     <div
       className="w-full max-w-[420px] rounded-2xl relative"
       style={{
-        background:  'rgba(11, 17, 30, 0.96)',
-        border:      '1px solid rgba(148,163,184,0.14)',
-        padding:     '36px 32px 28px',
-        boxShadow:   '0 30px 80px rgba(0,0,0,0.65), 0 0 0 1px rgba(52,211,153,0.07), 0 0 60px rgba(52,211,153,0.04)',
+        background:     'var(--rt-bg-card)',
+        border:         '1px solid var(--rt-border)',
+        padding:        '36px 32px 28px',
+        boxShadow:      'var(--rt-shadow-page), 0 0 0 1px rgba(52,211,153,0.07), 0 0 60px rgba(52,211,153,0.04)',
         backdropFilter: 'blur(20px)',
       }}
     >
@@ -88,7 +88,7 @@ export default function UsernameModal({ onClose }: Props) {
         <button
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center text-gray-500 hover:text-gray-200 hover:bg-white/6 transition-colors"
+          className="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 dark:text-gray-500 hover:text-slate-700 dark:hover:text-gray-200 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors"
         >
           <X size={15} />
         </button>
@@ -99,15 +99,15 @@ export default function UsernameModal({ onClose }: Props) {
         <div
           className="w-[60px] h-[60px] rounded-full flex items-center justify-center mb-5"
           style={{
-            background:  'rgba(52,211,153,0.1)',
-            border:      '1px solid rgba(52,211,153,0.25)',
-            boxShadow:   '0 0 28px rgba(52,211,153,0.22)',
+            background: 'rgba(52,211,153,0.1)',
+            border:     '1px solid rgba(52,211,153,0.25)',
+            boxShadow:  '0 0 28px rgba(52,211,153,0.22)',
           }}
         >
           <Smile size={26} className="text-emerald-400" />
         </div>
-        <h2 className="text-[22px] font-bold text-white tracking-tight">Welcome to RoomTalk</h2>
-        <p className="text-[13.5px] text-gray-400 mt-2 text-center leading-relaxed max-w-[300px]">
+        <h2 className="text-[22px] font-bold text-slate-900 dark:text-white tracking-tight">Welcome to RoomTalk</h2>
+        <p className="text-[13.5px] text-slate-500 dark:text-gray-400 mt-2 text-center leading-relaxed max-w-[300px]">
           Choose your display name to enter the rooms
         </p>
       </div>
@@ -116,33 +116,31 @@ export default function UsernameModal({ onClose }: Props) {
       <form onSubmit={(e) => { e.preventDefault(); submit(); }} className="space-y-3.5">
         <div className="relative">
           <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
-            <User size={15} className="text-gray-500" />
+            <User size={15} className="text-slate-400 dark:text-gray-500" />
           </div>
           <input
             value={username}
             onChange={(e) => { setUsername(e.target.value); setError(''); }}
             placeholder="Enter username"
             autoFocus
-            className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white placeholder-gray-500 outline-none transition-all"
+            className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 outline-none transition-all"
             style={{
-              background: 'rgba(255,255,255,0.04)',
+              background: 'var(--rt-bg-input)',
               border: error
                 ? '1px solid rgba(239,68,68,0.45)'
-                : '1px solid rgba(148,163,184,0.12)',
+                : '1px solid var(--rt-border)',
               boxShadow: error ? '0 0 0 3px rgba(239,68,68,0.08)' : undefined,
             }}
             onFocus={(e) => {
               if (!error) {
                 e.currentTarget.style.border     = '1px solid rgba(52,211,153,0.4)';
-                e.currentTarget.style.background = 'rgba(52,211,153,0.03)';
                 e.currentTarget.style.boxShadow  = '0 0 0 3px rgba(52,211,153,0.07)';
               }
             }}
             onBlur={(e) => {
               if (!error) {
-                e.currentTarget.style.border     = '1px solid rgba(148,163,184,0.12)';
-                e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
-                e.currentTarget.style.boxShadow  = '';
+                e.currentTarget.style.border    = '1px solid var(--rt-border)';
+                e.currentTarget.style.boxShadow = '';
               }
             }}
           />
@@ -181,8 +179,8 @@ export default function UsernameModal({ onClose }: Props) {
         </button>
       </form>
 
-      <div className="mt-5 flex items-start gap-2 text-[12px] text-gray-500 leading-relaxed">
-        <Shield size={12} className="text-gray-600 flex-shrink-0 mt-0.5" />
+      <div className="mt-5 flex items-start gap-2 text-[12px] text-slate-400 dark:text-gray-500 leading-relaxed">
+        <Shield size={12} className="text-slate-400 dark:text-gray-600 flex-shrink-0 mt-0.5" />
         <span>Your chats are temporary and automatically deleted after 12 hours.</span>
       </div>
     </div>

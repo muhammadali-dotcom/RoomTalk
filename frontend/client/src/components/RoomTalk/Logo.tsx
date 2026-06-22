@@ -20,7 +20,7 @@ export default function Logo({ size = 'md' }: LogoProps) {
       >
         <MessageSquare size={c.iconSize} className="text-emerald-400" />
       </div>
-      <span className={`font-bold text-white ${c.text} tracking-tight leading-none`}>
+      <span className={`font-bold text-slate-900 dark:text-white ${c.text} tracking-tight leading-none`}>
         RoomTalk
       </span>
     </div>

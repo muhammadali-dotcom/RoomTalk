@@ -7,6 +7,7 @@ import type { ReactNode } from 'react';
 import Logo from './Logo';
 import Sidebar, { type DmUser } from './Sidebar';
 import RoomCard, { type RoomDef } from './RoomCard';
+import ThemeToggle from '@/components/theme/ThemeToggle';
 import { socket } from '@/lib/socket';
 import { useUserStore } from '@/store/useUserStore';
 import { getUserColor, getUserAvatarLabel, formatMessageTime } from '@/lib/user-style';
@@ -114,12 +115,10 @@ export default function Dashboard({ username }: Props) {
       setRoomError(message);
     }
 
-    // Full DM list from server (on load or after dm:open)
     function onDmList({ users }: { users: DmUser[] }) {
       setDirectMessages(users);
     }
 
-    // New private message arrived on Dashboard
     function onPrivateReceive(msg: PrivateMessage) {
       const partner = msg.from === username ? msg.to : msg.from;
 
@@ -129,14 +128,12 @@ export default function Dashboard({ username }: Props) {
         return { ...prev, [partner]: [...existing, msg] };
       });
 
-      // Add partner to DM list if not already there
       setDirectMessages((prev) => {
         if (prev.some((d) => d.username === partner)) return prev;
         return [...prev, { username: partner, unreadCount: 0 }];
       });
     }
 
-    // History loaded after dm:open
     function onPrivateHistory({
       withUser,
       messages: history,
@@ -188,7 +185,6 @@ export default function Dashboard({ username }: Props) {
     function onUnreadUpdate({ from, count }: { from: string; count: number }) {
       setDirectMessages((prev) => {
         const exists = prev.some((d) => d.username === from);
-        // If user is currently viewing this DM, force count to 0
         const effectiveCount = activeDM === from ? 0 : count;
         if (exists) {
           return prev.map((d) =>
@@ -218,7 +214,6 @@ export default function Dashboard({ username }: Props) {
   function openDM(partner: string) {
     setActiveDM(partner);
     setDmError('');
-    // Reset badge immediately in local state
     setDirectMessages((prev) =>
       prev.map((d) => (d.username === partner ? { ...d, unreadCount: 0 } : d)),
     );
@@ -274,14 +269,14 @@ export default function Dashboard({ username }: Props) {
       className="flex flex-col"
       style={{
         height:     '100dvh',
-        background: 'radial-gradient(ellipse 70% 50% at 10% 20%, rgba(16,185,129,0.04) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 90% 80%, rgba(59,130,246,0.04) 0%, transparent 60%), #070B10',
+        background: 'var(--rt-bg-dash-gradient)',
       }}
     >
       <div
         className="flex flex-col flex-1 overflow-hidden m-2 sm:m-3 rounded-2xl"
         style={{
-          border:    '1px solid rgba(148,163,184,0.1)',
-          boxShadow: '0 30px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04)',
+          border:    '1px solid var(--rt-border)',
+          boxShadow: 'var(--rt-shadow-card)',
         }}
       >
         {/* Navbar */}
@@ -289,26 +284,26 @@ export default function Dashboard({ username }: Props) {
           className="flex-shrink-0 flex items-center justify-between px-5 sm:px-6"
           style={{
             height:       '72px',
-            background:   'rgba(10,14,22,0.98)',
-            borderBottom: '1px solid rgba(148,163,184,0.09)',
+            background:   'var(--rt-bg-header)',
+            borderBottom: '1px solid var(--rt-border-soft)',
           }}
         >
           <Logo size="md" />
 
           <div className="flex items-center gap-2 sm:gap-3">
+            <ThemeToggle />
+
             <button
               onClick={logout}
               title="Logout"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[13px] text-gray-400 hover:text-red-400 transition-colors"
-              style={{ border: '1px solid rgba(148,163,184,0.08)' }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[13px] text-slate-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors border border-slate-200 dark:border-white/[0.08]"
             >
               <LogOut size={14} />
               <span className="hidden sm:inline">Logout</span>
             </button>
 
             <button
-              className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl transition-colors hover:bg-white/5"
-              style={{ border: '1px solid rgba(148,163,184,0.1)' }}
+              className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl transition-colors hover:bg-slate-100 dark:hover:bg-white/5 border border-slate-200 dark:border-white/[0.1]"
             >
               <div className="relative">
                 <div
@@ -318,11 +313,11 @@ export default function Dashboard({ username }: Props) {
                   {avatarInitial}
                 </div>
                 <span
-                  className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#070B10]"
+                  className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-slate-50 dark:border-[#070B10]"
                   style={{ background: '#22C55E', boxShadow: '0 0 5px rgba(34,197,94,0.8)' }}
                 />
               </div>
-              <span className="hidden sm:block text-[13.5px] font-medium text-white">{username}</span>
+              <span className="hidden sm:block text-[13.5px] font-medium text-slate-900 dark:text-white">{username}</span>
             </button>
           </div>
         </header>
@@ -332,6 +327,7 @@ export default function Dashboard({ username }: Props) {
           {/* Sidebar */}
           <div className="hidden md:flex flex-shrink-0">
             <Sidebar
+              username={username}
               dmList={directMessages}
               onDmClick={openDM}
               onRoomsClick={handleRoomsClick}
@@ -342,15 +338,15 @@ export default function Dashboard({ username }: Props) {
           {/* Main content */}
           {activeDM ? (
             // ── DM Chat Panel ──────────────────────────────────────────────
-            <div className="flex-1 flex flex-col overflow-hidden" style={{ background: 'rgba(8,12,20,0.85)' }}>
+            <div className="flex-1 flex flex-col overflow-hidden" style={{ background: 'var(--rt-bg-content)' }}>
               {/* DM header */}
               <div
                 className="flex-shrink-0 flex items-center gap-3 px-5 py-3"
-                style={{ borderBottom: '1px solid rgba(148,163,184,0.09)', background: 'rgba(10,14,22,0.95)' }}
+                style={{ borderBottom: '1px solid var(--rt-border-soft)', background: 'var(--rt-bg-header)' }}
               >
                 <button
                   onClick={closeDM}
-                  className="flex items-center gap-1.5 text-[13px] text-gray-400 hover:text-white transition-colors flex-shrink-0"
+                  className="flex items-center gap-1.5 text-[13px] text-slate-500 dark:text-gray-400 hover:text-slate-900 dark:hover:text-white transition-colors flex-shrink-0"
                 >
                   <ArrowLeft size={15} />
                   <span className="hidden sm:inline">Back</span>
@@ -358,11 +354,11 @@ export default function Dashboard({ username }: Props) {
 
                 <div
                   className="w-px h-5 flex-shrink-0"
-                  style={{ background: 'rgba(148,163,184,0.12)' }}
+                  style={{ background: 'var(--rt-border)' }}
                 />
 
                 <Lock size={14} className="text-violet-400 flex-shrink-0" />
-                <span className="text-[15px] font-semibold text-white truncate">{activeDM}</span>
+                <span className="text-[15px] font-semibold text-slate-900 dark:text-white truncate">{activeDM}</span>
                 <span className="text-[12px] text-violet-500/70 hidden sm:block flex-shrink-0">
                   Private · messages expire after 12h
                 </span>
@@ -372,10 +368,10 @@ export default function Dashboard({ username }: Props) {
               <div className="flex-1 overflow-y-auto px-5 py-5 space-y-3">
                 <div className="flex justify-center">
                   <span
-                    className="text-[11.5px] text-gray-500 px-3 py-1 rounded-full"
+                    className="text-[11.5px] text-slate-500 dark:text-gray-500 px-3 py-1 rounded-full"
                     style={{
-                      background: 'rgba(255,255,255,0.03)',
-                      border:     '1px solid rgba(148,163,184,0.08)',
+                      background: 'var(--rt-bg-surface)',
+                      border:     '1px solid var(--rt-border-soft)',
                     }}
                   >
                     Private chat with {activeDM}. Only you two can see this.
@@ -384,7 +380,7 @@ export default function Dashboard({ username }: Props) {
 
                 {dmMessages.length === 0 && (
                   <div className="flex justify-center pt-4">
-                    <span className="text-[12px] text-gray-600">No messages yet.</span>
+                    <span className="text-[12px] text-slate-400 dark:text-gray-600">No messages yet.</span>
                   </div>
                 )}
 
@@ -395,7 +391,7 @@ export default function Dashboard({ username }: Props) {
                       <div key={msg.id} className="flex justify-end">
                         <div className="flex flex-col gap-1 max-w-[80%] items-end">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[10.5px] text-gray-600">
+                            <span className="text-[10.5px] text-slate-400 dark:text-gray-600">
                               {formatMessageTime(msg.createdAt)}
                             </span>
                             <span className="text-[11.5px] font-semibold text-violet-400">You</span>
@@ -425,16 +421,16 @@ export default function Dashboard({ username }: Props) {
                       </div>
                       <div className="flex flex-col gap-1 max-w-[80%] items-start">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[11.5px] font-semibold text-gray-300">{msg.from}</span>
-                          <span className="text-[10.5px] text-gray-600">
+                          <span className="text-[11.5px] font-semibold text-slate-700 dark:text-gray-300">{msg.from}</span>
+                          <span className="text-[10.5px] text-slate-400 dark:text-gray-600">
                             {formatMessageTime(msg.createdAt)}
                           </span>
                         </div>
                         <div
-                          className="px-3.5 py-2 rounded-2xl text-[13.5px] text-white leading-relaxed break-words"
+                          className="px-3.5 py-2 rounded-2xl text-[13.5px] leading-relaxed break-words text-slate-800 dark:text-white"
                           style={{
-                            background: 'rgba(255,255,255,0.05)',
-                            border:     '1px solid rgba(148,163,184,0.1)',
+                            background: 'var(--rt-bubble-other-bg)',
+                            border:     '1px solid var(--rt-bubble-other-border)',
                           }}
                         >
                           {msg.text}
@@ -463,7 +459,7 @@ export default function Dashboard({ username }: Props) {
               {/* Input bar */}
               <div
                 className="flex-shrink-0 px-5 py-4"
-                style={{ borderTop: '1px solid rgba(148,163,184,0.08)' }}
+                style={{ borderTop: '1px solid var(--rt-border-soft)' }}
               >
                 <div className="flex items-center gap-3">
                   <div
@@ -489,7 +485,7 @@ export default function Dashboard({ username }: Props) {
                       }}
                       placeholder={`Message ${activeDM}…`}
                       maxLength={500}
-                      className="flex-1 bg-transparent text-sm text-white placeholder-gray-500 outline-none"
+                      className="flex-1 bg-transparent text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-gray-500 outline-none"
                     />
                   </div>
 
@@ -511,13 +507,13 @@ export default function Dashboard({ username }: Props) {
             // ── Room Cards ────────────────────────────────────────────────
             <main
               className="flex-1 overflow-y-auto"
-              style={{ background: 'rgba(8,12,20,0.7)' }}
+              style={{ background: 'var(--rt-bg-content)' }}
             >
               <div className="px-6 sm:px-8 py-7 max-w-[900px]">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-7">
                   <div>
-                    <h1 className="text-[22px] font-bold text-white tracking-tight">Available Rooms</h1>
-                    <p className="text-[13px] text-gray-400 mt-1">Join a room to start chatting with others</p>
+                    <h1 className="text-[22px] font-bold text-slate-900 dark:text-white tracking-tight">Available Rooms</h1>
+                    <p className="text-[13px] text-slate-500 dark:text-gray-400 mt-1">Join a room to start chatting with others</p>
                   </div>
                 </div>
 
@@ -535,7 +531,7 @@ export default function Dashboard({ username }: Props) {
 
                 <div className="space-y-3">
                   {roomDefs.length === 0 ? (
-                    <div className="text-[13px] text-gray-500 py-4">Loading rooms…</div>
+                    <div className="text-[13px] text-slate-400 dark:text-gray-500 py-4">Loading rooms…</div>
                   ) : (
                     roomDefs.map((room) => (
                       <RoomCard
@@ -549,13 +545,13 @@ export default function Dashboard({ username }: Props) {
                 </div>
 
                 <div
-                  className="mt-6 flex items-center gap-2.5 px-4 py-3 rounded-xl text-[12.5px] text-gray-500"
+                  className="mt-6 flex items-center gap-2.5 px-4 py-3 rounded-xl text-[12.5px] text-slate-500 dark:text-gray-500"
                   style={{
-                    background: 'rgba(255,255,255,0.02)',
-                    border:     '1px solid rgba(148,163,184,0.07)',
+                    background: 'var(--rt-bg-surface)',
+                    border:     '1px solid var(--rt-border-soft)',
                   }}
                 >
-                  <Clock size={14} className="text-gray-600 flex-shrink-0" />
+                  <Clock size={14} className="text-slate-400 dark:text-gray-600 flex-shrink-0" />
                   Chats are temporary and automatically deleted after 12 hours.
                 </div>
               </div>
@@ -567,8 +563,8 @@ export default function Dashboard({ username }: Props) {
         <nav
           className="md:hidden flex-shrink-0 flex items-center justify-around px-2 py-2"
           style={{
-            borderTop:  '1px solid rgba(148,163,184,0.09)',
-            background: 'rgba(10,14,22,0.98)',
+            borderTop:  '1px solid var(--rt-border-soft)',
+            background: 'var(--rt-bg-header)',
           }}
         >
           {[
