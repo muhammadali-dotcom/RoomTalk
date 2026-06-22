@@ -1,233 +1,655 @@
 @import "tailwindcss";
 
-/* ── Theme CSS variables ────────────────────────────────────────── */
+/* Make Tailwind dark: variants respect the .dark class on <html>,
+   not prefers-color-scheme (which is the Tailwind v4 default). */
+@custom-variant dark (&:is(.dark, .dark *));
+
+/* ─────────────────────────────────────────────────────────────
+   RoomTalk Theme Variables
+   Light theme = default
+   Dark theme = when .dark is on <html>
+───────────────────────────────────────────────────────────── */
 
 :root {
-  /* Light theme (default when .dark is NOT on <html>) */
-  --rt-bg-page:             #f8fafc;
-  --rt-bg-page-gradient:    radial-gradient(ellipse 80% 60% at 15% 40%, rgba(16,185,129,0.04) 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 85% 20%, rgba(59,130,246,0.04) 0%, transparent 55%), #f8fafc;
-  --rt-bg-dash-gradient:    radial-gradient(ellipse 70% 50% at 10% 20%, rgba(16,185,129,0.03) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 90% 80%, rgba(59,130,246,0.03) 0%, transparent 60%), #f8fafc;
-  --rt-bg-card:             rgba(255,255,255,0.98);
-  --rt-bg-header:           rgba(255,255,255,0.98);
-  --rt-bg-sidebar:          rgba(255,255,255,0.97);
-  --rt-bg-content:          rgba(248,250,252,0.9);
-  --rt-bg-surface:          rgba(241,245,249,0.7);
-  --rt-bg-surface2:         rgba(226,232,240,0.6);
-  --rt-bg-input:            #ffffff;
-  --rt-border:              rgba(100,116,139,0.28);
-  --rt-border-soft:         rgba(100,116,139,0.16);
-  --rt-text-primary:        #0f172a;
-  --rt-text-secondary:      #475569;
-  --rt-text-muted:          #94a3b8;
-  --rt-bubble-other-bg:     #ffffff;
-  --rt-bubble-other-border: rgba(148,163,184,0.3);
-  --rt-bubble-self-bg:      linear-gradient(135deg, #10B981, #059669);
-  --rt-bubble-self-border:  rgba(16,185,129,0.3);
-  --rt-shadow-page:         0 20px 60px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
-  --rt-shadow-card:         0 4px 20px rgba(0,0,0,0.05);
+  color-scheme: light;
 
-  /* Legacy variables (still used by old CSS classes) */
-  --main-bg:       var(--rt-bg-page);
-  --secondary-bg:  #e2e8f0;
-  --card-bg:       #ffffff;
-  --card-hover:    #f1f5f9;
-  --border:        var(--rt-border);
-  --text-primary:  var(--rt-text-primary);
-  --text-secondary:var(--rt-text-secondary);
-  --text-muted:    var(--rt-text-muted);
-  --accent-teal:   #2DD4BF;
-  --accent-emerald:#34D399;
-  --online:        #22C55E;
-  --error:         #EF4444;
+  /* Brand */
+  --rt-brand: #10b981;
+  --rt-brand-hover: #059669;
+  --rt-brand-soft: rgba(16, 185, 129, 0.1);
+  --rt-brand-border: rgba(16, 185, 129, 0.24);
+
+  /* Light theme */
+  --rt-bg-page: #f8fafc;
+  --rt-bg-page-gradient:
+    radial-gradient(ellipse 80% 60% at 15% 40%, rgba(16, 185, 129, 0.055) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 85% 20%, rgba(16, 185, 129, 0.035) 0%, transparent 55%),
+    #f8fafc;
+
+  --rt-bg-dash-gradient:
+    radial-gradient(ellipse 70% 50% at 10% 20%, rgba(16, 185, 129, 0.045) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 80%, rgba(16, 185, 129, 0.03) 0%, transparent 60%),
+    #f8fafc;
+
+  --rt-bg-card: #ffffff;
+  --rt-bg-header: rgba(255, 255, 255, 0.96);
+  --rt-bg-sidebar: rgba(255, 255, 255, 0.96);
+  --rt-bg-content: rgba(248, 250, 252, 0.92);
+  --rt-bg-surface: rgba(255, 255, 255, 0.9);
+  --rt-bg-surface2: rgba(241, 245, 249, 0.9);
+  --rt-bg-input: #ffffff;
+
+  --rt-border: rgba(148, 163, 184, 0.42);
+  --rt-border-soft: rgba(148, 163, 184, 0.24);
+  --rt-border-strong: rgba(100, 116, 139, 0.35);
+
+  --rt-text-primary: #0f172a;
+  --rt-text-secondary: #475569;
+  --rt-text-muted: #64748b;
+  --rt-text-faint: #94a3b8;
+
+  --rt-bubble-other-bg: #ffffff;
+  --rt-bubble-other-border: rgba(148, 163, 184, 0.32);
+  --rt-bubble-self-bg: linear-gradient(135deg, #10b981, #059669);
+  --rt-bubble-self-border: rgba(16, 185, 129, 0.35);
+
+  --rt-shadow-page:
+    0 24px 70px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+
+  --rt-shadow-card:
+    0 12px 32px rgba(15, 23, 42, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+
+  --rt-shadow-soft: 0 8px 24px rgba(15, 23, 42, 0.06);
+
+  /* Legacy variables */
+  --main-bg: var(--rt-bg-page);
+  --secondary-bg: #f1f5f9;
+  --card-bg: #ffffff;
+  --card-hover: #f1f5f9;
+  --border: var(--rt-border);
+  --text-primary: var(--rt-text-primary);
+  --text-secondary: var(--rt-text-secondary);
+  --text-muted: var(--rt-text-muted);
+  --accent-teal: #10b981;
+  --accent-emerald: #10b981;
+  --online: #22c55e;
+  --error: #ef4444;
 }
 
 .dark {
-  /* Dark theme overrides */
-  --rt-bg-page:             #070B10;
-  --rt-bg-page-gradient:    radial-gradient(ellipse 80% 60% at 15% 40%, rgba(16,185,129,0.05) 0%, transparent 55%), radial-gradient(ellipse 60% 50% at 85% 20%, rgba(59,130,246,0.05) 0%, transparent 55%), #070B10;
-  --rt-bg-dash-gradient:    radial-gradient(ellipse 70% 50% at 10% 20%, rgba(16,185,129,0.04) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 90% 80%, rgba(59,130,246,0.04) 0%, transparent 60%), #070B10;
-  --rt-bg-card:             rgba(10,15,24,0.97);
-  --rt-bg-header:           rgba(10,14,22,0.98);
-  --rt-bg-sidebar:          rgba(10,14,22,0.95);
-  --rt-bg-content:          rgba(8,12,20,0.85);
-  --rt-bg-surface:          rgba(255,255,255,0.025);
-  --rt-bg-surface2:         rgba(255,255,255,0.04);
-  --rt-bg-input:            rgba(255,255,255,0.04);
-  --rt-border:              rgba(148,163,184,0.1);
-  --rt-border-soft:         rgba(148,163,184,0.07);
-  --rt-text-primary:        #F8FAFC;
-  --rt-text-secondary:      #9CA3AF;
-  --rt-text-muted:          #6B7280;
-  --rt-bubble-other-bg:     rgba(255,255,255,0.05);
-  --rt-bubble-other-border: rgba(148,163,184,0.1);
-  --rt-bubble-self-bg:      rgba(16,185,129,0.15);
-  --rt-bubble-self-border:  rgba(16,185,129,0.25);
-  --rt-shadow-page:         0 40px 100px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.04);
-  --rt-shadow-card:         0 30px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+  color-scheme: dark;
+
+  /* Brand */
+  --rt-brand: #34d399;
+  --rt-brand-hover: #10b981;
+  --rt-brand-soft: rgba(52, 211, 153, 0.1);
+  --rt-brand-border: rgba(52, 211, 153, 0.24);
+
+  /* Dark theme */
+  --rt-bg-page: #070b10;
+  --rt-bg-page-gradient:
+    radial-gradient(ellipse 80% 60% at 15% 40%, rgba(16, 185, 129, 0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 85% 20%, rgba(16, 185, 129, 0.035) 0%, transparent 55%),
+    #070b10;
+
+  --rt-bg-dash-gradient:
+    radial-gradient(ellipse 70% 50% at 10% 20%, rgba(16, 185, 129, 0.045) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 80%, rgba(16, 185, 129, 0.025) 0%, transparent 60%),
+    #070b10;
+
+  --rt-bg-card: rgba(10, 15, 24, 0.97);
+  --rt-bg-header: rgba(10, 14, 22, 0.98);
+  --rt-bg-sidebar: rgba(10, 14, 22, 0.95);
+  --rt-bg-content: rgba(8, 12, 20, 0.88);
+  --rt-bg-surface: rgba(255, 255, 255, 0.035);
+  --rt-bg-surface2: rgba(255, 255, 255, 0.055);
+  --rt-bg-input: rgba(255, 255, 255, 0.045);
+
+  --rt-border: rgba(148, 163, 184, 0.12);
+  --rt-border-soft: rgba(148, 163, 184, 0.08);
+  --rt-border-strong: rgba(148, 163, 184, 0.18);
+
+  --rt-text-primary: #f8fafc;
+  --rt-text-secondary: #cbd5e1;
+  --rt-text-muted: #94a3b8;
+  --rt-text-faint: #64748b;
+
+  --rt-bubble-other-bg: rgba(255, 255, 255, 0.055);
+  --rt-bubble-other-border: rgba(148, 163, 184, 0.12);
+  --rt-bubble-self-bg: rgba(16, 185, 129, 0.16);
+  --rt-bubble-self-border: rgba(16, 185, 129, 0.28);
+
+  --rt-shadow-page:
+    0 40px 100px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  --rt-shadow-card:
+    0 30px 80px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  --rt-shadow-soft: 0 18px 45px rgba(0, 0, 0, 0.35);
 
   /* Legacy variables */
-  --main-bg:       var(--rt-bg-page);
-  --secondary-bg:  #10151C;
-  --card-bg:       #151A21;
-  --card-hover:    #1B222B;
-  --border:        var(--rt-border);
-  --text-primary:  var(--rt-text-primary);
-  --text-secondary:var(--rt-text-secondary);
-  --text-muted:    var(--rt-text-muted);
+  --main-bg: var(--rt-bg-page);
+  --secondary-bg: #10151c;
+  --card-bg: #151a21;
+  --card-hover: #1b222b;
+  --border: var(--rt-border);
+  --text-primary: var(--rt-text-primary);
+  --text-secondary: var(--rt-text-secondary);
+  --text-muted: var(--rt-text-muted);
 }
 
-html, body, #__next {
+/* ─────────────────────────────────────────────────────────────
+   Base
+───────────────────────────────────────────────────────────── */
+
+html,
+body,
+#__next {
   height: 100%;
 }
 
-body {
+html {
   background: var(--rt-bg-page);
-  color: var(--rt-text-primary);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
 }
 
-/* ── Legacy classes (kept for /rooms and /chat routes) ───────────── */
+body {
+  margin: 0;
+  background: var(--rt-bg-page);
+  color: var(--rt-text-primary);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: rgba(16, 185, 129, 0.22);
+  color: var(--rt-text-primary);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+/* Better readable placeholder in both themes */
+input::placeholder,
+textarea::placeholder {
+  color: var(--rt-text-faint);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Scrollbar
+───────────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.22);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.55);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Legacy classes
+   Kept for /rooms and /chat routes
+───────────────────────────────────────────────────────────── */
 
 .container-panel {
   background: var(--card-bg);
   border: 1px solid var(--border);
-  box-shadow: 0 10px 30px rgba(2,6,23,0.6);
-  border-radius: 12px;
+  box-shadow: var(--rt-shadow-card);
+  border-radius: 14px;
+  color: var(--text-primary);
 }
 
 .room-card {
   background: transparent;
-  border-radius: 10px;
+  border-radius: 12px;
   padding: 12px;
-  transition: background-color 0.12s ease, transform 0.12s ease;
+  color: var(--text-primary);
+  transition:
+    background-color 0.12s ease,
+    transform 0.12s ease,
+    border-color 0.12s ease;
 }
-.room-card:hover { background: var(--card-hover); }
+
+.room-card:hover {
+  background: var(--card-hover);
+}
 
 .username-modal {
   background: var(--card-bg);
   border: 1px solid var(--border);
   padding: 18px;
-  border-radius: 10px;
+  border-radius: 14px;
   width: 100%;
-  box-shadow: 0 20px 50px rgba(2,6,23,0.7);
+  color: var(--text-primary);
+  box-shadow: var(--rt-shadow-card);
 }
 
 .logo-sm {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
-.avatar-stack { display: inline-flex; }
+.avatar-stack {
+  display: inline-flex;
+}
+
 .avatar-stack img {
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  border: 2px solid rgba(0,0,0,0.35);
+  border: 2px solid var(--rt-bg-card);
   margin-left: -8px;
 }
 
-.muted     { color: var(--text-muted); }
-.secondary { color: var(--text-secondary); }
+.muted {
+  color: var(--text-muted);
+}
+
+.secondary {
+  color: var(--text-secondary);
+}
+
+.small-muted {
+  font-size: 12px;
+  color: var(--text-muted);
+}
 
 .pill {
   background: var(--rt-bg-surface);
   border: 1px solid var(--rt-border-soft);
+  color: var(--rt-text-secondary);
   padding: 4px 8px;
   border-radius: 9999px;
   font-size: 12px;
 }
 
 .accent-btn {
-  background: linear-gradient(180deg, var(--accent-emerald), var(--accent-teal));
-  color: #042018;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
   padding: 8px 12px;
-  border-radius: 8px;
-  font-weight: 600;
+  border-radius: 10px;
+  font-weight: 700;
+  border: none;
+  box-shadow: 0 8px 22px rgba(16, 185, 129, 0.22);
 }
 
-.small-muted { font-size: 12px; color: var(--text-muted); }
-.room-list-scroll { max-height: 520px; overflow-y: auto; }
+.room-list-scroll {
+  max-height: 520px;
+  overflow-y: auto;
+}
 
 @media (max-width: 960px) {
-  .container-panel { padding: 18px; display: block; }
-  .container-panel > .w-1\/2 { width: 100% !important; }
-  .room-list-scroll { max-height: 360px; }
-}
-@media (min-width: 961px) {
-  .container-panel { display: flex; }
+  .container-panel {
+    padding: 18px;
+    display: block;
+  }
+
+  .container-panel > .w-1\/2 {
+    width: 100% !important;
+  }
+
+  .room-list-scroll {
+    max-height: 360px;
+  }
 }
 
-/* ── RoomTalk premium UI shared utilities ────────────────────────── */
+@media (min-width: 961px) {
+  .container-panel {
+    display: flex;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   RoomTalk shared utilities
+───────────────────────────────────────────────────────────── */
+
+.rt-app-shell {
+  background: var(--rt-bg-page-gradient);
+  color: var(--rt-text-primary);
+}
+
+.rt-dashboard-bg {
+  background: var(--rt-bg-dash-gradient);
+  color: var(--rt-text-primary);
+}
+
+.rt-panel {
+  background: var(--rt-bg-card);
+  border: 1px solid var(--rt-border);
+  box-shadow: var(--rt-shadow-card);
+  color: var(--rt-text-primary);
+}
+
+.rt-header {
+  background: var(--rt-bg-header);
+  border-bottom: 1px solid var(--rt-border-soft);
+  color: var(--rt-text-primary);
+}
+
+.rt-sidebar {
+  background: var(--rt-bg-sidebar);
+  border-right: 1px solid var(--rt-border-soft);
+  color: var(--rt-text-primary);
+}
+
+.rt-content {
+  background: var(--rt-bg-content);
+  color: var(--rt-text-primary);
+}
+
+.rt-title {
+  color: var(--rt-text-primary);
+}
+
+.rt-subtitle {
+  color: var(--rt-text-secondary);
+}
+
+.rt-muted {
+  color: var(--rt-text-muted);
+}
+
+.rt-faint {
+  color: var(--rt-text-faint);
+}
+
+/* Sidebar item */
 
 .rt-sidebar-item {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--rt-text-muted);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
   border: 1px solid transparent;
   user-select: none;
 }
+
 .rt-sidebar-item:hover {
   background: var(--rt-bg-surface2);
-  color: var(--rt-text-secondary);
+  color: var(--rt-text-primary);
 }
+
 .rt-sidebar-item.active {
-  background: rgba(52, 211, 153, 0.08);
-  color: #34D399;
-  border-color: rgba(52, 211, 153, 0.18);
+  background: var(--rt-brand-soft);
+  color: var(--rt-brand);
+  border-color: var(--rt-brand-border);
+  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.03);
 }
+
+/* Direct message row */
+
+.rt-dm-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 12px;
+  color: var(--rt-text-secondary);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.rt-dm-item:hover {
+  background: var(--rt-bg-surface2);
+  color: var(--rt-text-primary);
+}
+
+.rt-dm-item.active {
+  background: var(--rt-brand-soft);
+  color: var(--rt-brand);
+  border-color: var(--rt-brand-border);
+}
+
+.rt-unread-badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* Room cards */
 
 .rt-room-card {
-  background: var(--rt-bg-surface);
+  background: var(--rt-bg-card);
   border: 1px solid var(--rt-border);
-  border-radius: 14px;
+  border-radius: 16px;
   padding: 20px;
-  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-}
-.rt-room-card:hover {
-  border-color: rgba(52, 211, 153, 0.28);
-  transform: translateY(-1px);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15), 0 0 0 1px rgba(52,211,153,0.06);
+  color: var(--rt-text-primary);
+  box-shadow: var(--rt-shadow-soft);
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
 }
 
+.rt-room-card:hover {
+  border-color: var(--rt-brand-border);
+  transform: translateY(-1px);
+  box-shadow:
+    var(--rt-shadow-soft),
+    0 0 0 1px rgba(16, 185, 129, 0.08);
+}
+
+.rt-room-card.active,
+.rt-room-card.selected {
+  background: var(--rt-brand-soft);
+  border-color: var(--rt-brand-border);
+}
+
+/* Buttons */
+
 .rt-btn-green {
-  background: linear-gradient(135deg, #10B981, #059669);
-  color: #fff;
-  font-weight: 600;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  font-weight: 700;
   font-size: 13px;
   padding: 9px 20px;
   border-radius: 10px;
   border: none;
   cursor: pointer;
-  transition: opacity 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
-  box-shadow: 0 4px 16px rgba(16,185,129,0.3);
+  transition:
+    opacity 0.15s ease,
+    transform 0.1s ease,
+    box-shadow 0.15s ease;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.28);
   white-space: nowrap;
 }
-.rt-btn-green:hover  { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(16,185,129,0.4); }
-.rt-btn-green:active { transform: scale(0.97); }
+
+.rt-btn-green:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.36);
+}
+
+.rt-btn-green:active {
+  transform: scale(0.97);
+}
+
+.rt-btn-green:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
 
 .rt-btn-outline {
   background: transparent;
-  color: #34D399;
-  font-weight: 600;
+  color: var(--rt-brand);
+  font-weight: 700;
   font-size: 13px;
   padding: 9px 20px;
   border-radius: 10px;
-  border: 1px solid rgba(52, 211, 153, 0.35);
+  border: 1px solid var(--rt-brand-border);
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    color 0.15s ease;
   white-space: nowrap;
 }
+
 .rt-btn-outline:hover {
-  background: rgba(52, 211, 153, 0.07);
-  border-color: rgba(52, 211, 153, 0.5);
-  box-shadow: 0 0 16px rgba(52, 211, 153, 0.12);
+  background: var(--rt-brand-soft);
+  border-color: rgba(16, 185, 129, 0.45);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.12);
+}
+
+/* Inputs */
+
+.rt-input {
+  background: var(--rt-bg-input);
+  border: 1px solid var(--rt-border);
+  color: var(--rt-text-primary);
+  border-radius: 12px;
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.rt-input::placeholder {
+  color: var(--rt-text-faint);
+}
+
+.rt-input:focus {
+  border-color: var(--rt-brand-border);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+}
+
+/* Message bubbles */
+
+.rt-message-other {
+  background: var(--rt-bubble-other-bg);
+  border: 1px solid var(--rt-bubble-other-border);
+  color: var(--rt-text-primary);
+}
+
+.rt-message-self {
+  background: var(--rt-bubble-self-bg);
+  border: 1px solid var(--rt-bubble-self-border);
+  color: #ffffff;
+}
+
+/* Theme toggle */
+
+.rt-theme-toggle {
+  border: 1px solid var(--rt-border);
+  background: var(--rt-bg-surface);
+  color: var(--rt-text-secondary);
+  border-radius: 12px;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.rt-theme-toggle:hover {
+  background: var(--rt-bg-surface2);
+  color: var(--rt-text-primary);
+  border-color: var(--rt-border-strong);
+}
+
+.rt-theme-toggle:active {
+  transform: scale(0.97);
+}
+
+/* Online status */
+
+.rt-online-dot {
+  background: var(--online);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.14);
+}
+
+/* Error */
+
+.rt-error {
+  color: var(--error);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.18);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Helpers for old hardcoded sections
+───────────────────────────────────────────────────────────── */
+
+.rt-glass {
+  background: var(--rt-bg-card);
+  border: 1px solid var(--rt-border);
+  box-shadow: var(--rt-shadow-card);
+}
+
+.rt-divider {
+  border-color: var(--rt-border-soft);
+}
+
+.rt-brand-text {
+  color: var(--rt-brand);
+}
+
+.rt-brand-bg {
+  background: var(--rt-brand-soft);
+}
+
+.rt-brand-border {
+  border-color: var(--rt-brand-border);
 }

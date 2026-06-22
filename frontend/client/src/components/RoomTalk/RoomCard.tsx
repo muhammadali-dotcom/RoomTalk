@@ -38,12 +38,12 @@ export default function RoomCard({ room, joining = false, onJoin }: Props) {
       {/* Details */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <h3 className="text-[15px] font-semibold text-white">{room.name}</h3>
+          <h3 className="text-[15px] font-semibold text-slate-900 dark:text-white">{room.name}</h3>
           <span
-            className="flex items-center gap-1.5 text-[11px] font-medium text-gray-400 px-2 py-0.5 rounded-full"
+            className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500 dark:text-gray-400 px-2 py-0.5 rounded-full"
             style={{
-              background: 'rgba(255,255,255,0.04)',
-              border:     '1px solid rgba(148,163,184,0.1)',
+              background: 'var(--rt-bg-surface2)',
+              border:     '1px solid var(--rt-border-soft)',
             }}
           >
             <span
@@ -54,12 +54,12 @@ export default function RoomCard({ room, joining = false, onJoin }: Props) {
           </span>
         </div>
 
-        <p className="mt-1 text-[12.5px] text-gray-400 leading-relaxed line-clamp-1">
+        <p className="mt-1 text-[12.5px] text-slate-500 dark:text-gray-400 leading-relaxed line-clamp-1">
           {room.description}
         </p>
 
         <div className="mt-2.5 flex items-center gap-2">
-          <span className="text-[11.5px] text-gray-500">
+          <span className="text-[11.5px] text-slate-500 dark:text-gray-500">
             {room.active === 0
               ? 'No one here yet — be the first!'
               : `${room.active} ${room.active === 1 ? 'member' : 'members'} chatting`}

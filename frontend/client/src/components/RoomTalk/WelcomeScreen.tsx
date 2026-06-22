@@ -78,7 +78,7 @@ export default function WelcomeScreen() {
               <br />
               organized by{" "}
               <span
-                className="text-emerald-400"
+                className="text-emerald-600 dark:text-emerald-400"
                 style={{ textShadow: "0 0 32px rgba(52,211,153,0.45)" }}
               >
                 rooms.
@@ -98,14 +98,14 @@ export default function WelcomeScreen() {
                     key={title}
                     className="p-4 rounded-xl transition-colors"
                     style={{
-                      background: "var(--rt-bg-surface)",
-                      border: "1px solid var(--rt-border-soft)",
+                      background: "var(--rt-bg-surface2)",
+                      border: "1px solid var(--rt-border)",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = "var(--rt-border)";
+                      e.currentTarget.style.borderColor = "var(--rt-border-strong)";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = "var(--rt-border-soft)";
+                      e.currentTarget.style.borderColor = "var(--rt-border)";
                     }}
                   >
                     <div
@@ -134,7 +134,7 @@ export default function WelcomeScreen() {
             <div
               className="rounded-2xl p-6"
               style={{
-                background: "var(--rt-bg-surface)",
+                background: "var(--rt-bg-surface2)",
                 border: "1px solid var(--rt-border)",
                 boxShadow: "var(--rt-shadow-card)",
                 backdropFilter: "blur(16px)",
@@ -234,16 +234,16 @@ export default function WelcomeScreen() {
                       key={room.name}
                       className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-colors"
                       style={{
-                        background: "var(--rt-bg-surface)",
-                        border: "1px solid var(--rt-border-soft)",
+                        background: "var(--rt-bg-surface2)",
+                        border: "1px solid var(--rt-border)",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = "var(--rt-border)";
+                        e.currentTarget.style.borderColor = "var(--rt-border-strong)";
                         e.currentTarget.style.background = "var(--rt-bg-surface2)";
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = "var(--rt-border-soft)";
-                        e.currentTarget.style.background = "var(--rt-bg-surface)";
+                        e.currentTarget.style.borderColor = "var(--rt-border)";
+                        e.currentTarget.style.background = "var(--rt-bg-surface2)";
                       }}
                     >
                       <Hash size={14} className="text-slate-400 dark:text-gray-600 flex-shrink-0" />

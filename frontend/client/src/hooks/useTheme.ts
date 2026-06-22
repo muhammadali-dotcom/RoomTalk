@@ -2,35 +2,78 @@
 
 import { useEffect, useState } from 'react';
 
-type Theme = 'dark' | 'light';
+export type Theme = 'dark' | 'light';
 
 const STORAGE_KEY = 'roomtalk-theme';
 
-export function useTheme() {
-  const [theme, setTheme] = useState<Theme>('dark');
+function getInitialTheme(): Theme {
+  if (typeof window === 'undefined') return 'dark';
 
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-    const initial: Theme = stored === 'light' ? 'light' : 'dark';
-    setTheme(initial);
-    applyTheme(initial);
-  }, []);
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
 
-  function toggle() {
-    const next: Theme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
-    applyTheme(next);
-    localStorage.setItem(STORAGE_KEY, next);
+    if (stored === 'light') return 'light';
+    if (stored === 'dark') return 'dark';
+
+    return 'dark';
+  } catch {
+    return 'dark';
   }
-
-  return { theme, toggle };
 }
 
 function applyTheme(theme: Theme) {
+  if (typeof document === 'undefined') return;
+
   const html = document.documentElement;
+
   if (theme === 'dark') {
     html.classList.add('dark');
+    html.setAttribute('data-theme', 'dark');
   } else {
     html.classList.remove('dark');
+    html.setAttribute('data-theme', 'light');
   }
+}
+
+function saveTheme(theme: Theme) {
+  if (typeof window === 'undefined') return;
+
+  try {
+    window.localStorage.setItem(STORAGE_KEY, theme);
+  } catch {
+    // Ignore localStorage errors
+  }
+}
+
+export function useTheme() {
+  const [theme, setTheme] = useState<Theme>('dark');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const initialTheme = getInitialTheme();
+
+    setTheme(initialTheme);
+    applyTheme(initialTheme);
+    setMounted(true);
+  }, []);
+
+  function setAppTheme(nextTheme: Theme) {
+    setTheme(nextTheme);
+    applyTheme(nextTheme);
+    saveTheme(nextTheme);
+  }
+
+  function toggle() {
+    const nextTheme: Theme = theme === 'dark' ? 'light' : 'dark';
+    setAppTheme(nextTheme);
+  }
+
+  return {
+    theme,
+    isDark: theme === 'dark',
+    isLight: theme === 'light',
+    mounted,
+    setTheme: setAppTheme,
+    toggle,
+  };
 }

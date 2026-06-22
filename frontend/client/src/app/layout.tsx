@@ -1,21 +1,48 @@
 import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
 import '../globals.css';
 
 export const metadata: Metadata = {
   title: 'RoomTalk — Real-time Chat Rooms',
-  description: 'Join rooms, chat publicly, send private messages. Chats expire after 12 hours.',
+  description:
+    'Join rooms, chat publicly, send private messages. Chats expire after 12 hours.',
 };
 
-// Runs before hydration to prevent flash of wrong theme
-const themeScript = `(function(){var t=localStorage.getItem('roomtalk-theme');if(t!=='light')document.documentElement.classList.add('dark');})();`;
+/**
+ * Prevents flash of wrong theme before React hydration.
+ *
+ * Theme rule:
+ * - If localStorage has "light" → light mode
+ * - Otherwise → dark mode by default
+ */
+const themeScript = `
+(function () {
+  try {
+    var theme = localStorage.getItem('roomtalk-theme');
+    var root = document.documentElement;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+    if (theme === 'light') {
+      root.classList.remove('dark');
+      root.setAttribute('data-theme', 'light');
+    } else {
+      root.classList.add('dark');
+      root.setAttribute('data-theme', 'dark');
+    }
+  } catch (e) {
+    document.documentElement.classList.add('dark');
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+`;
+
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className="h-full dark" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className="h-full bg-slate-50 dark:bg-[#070B10] text-slate-900 dark:text-[#F8FAFC] antialiased">
+
+      <body className="h-full bg-[var(--rt-bg-page)] text-[var(--rt-text-primary)] antialiased transition-colors duration-200">
         {children}
       </body>
     </html>
